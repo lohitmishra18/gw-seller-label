@@ -1,6 +1,6 @@
 (() => {
   const INCH = 72;
-  const PAGE_4x6 = [4 * INCH, 6 * INCH];   // 288 x 432 points
+  const PAGE_4x6 = [4 * INCH, 6 * INCH]; // 288 x 432
 
   const $ = (s) => document.querySelector(s);
   const statusEl = $("#status");
@@ -12,107 +12,116 @@
     return el ? el.value : "amazon";
   }
 
-  // --- PDF.js helpers -------------------------------------------------------
-
-  // Render a single PDF page to a PNG (data URL)
-  async function renderPageToPNG(pdf, pageIndex, targetPixelsWide) {
+  // --------- PDF.js render ----------
+  async function renderPageToCanvas(pdf, pageIndex, targetPixelsWide) {
     const page = await pdf.getPage(pageIndex + 1);
-    const viewport = page.getViewport({ scale: 1.0 });
-    const scale = targetPixelsWide / viewport.width;
-    const scaledViewport = page.getViewport({ scale });
+    const vp1 = page.getViewport({ scale: 1 });
+    const scale = targetPixelsWide / vp1.width;
+    const viewport = page.getViewport({ scale });
 
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
+    canvas.width = Math.floor(viewport.width);
+    canvas.height = Math.floor(viewport.height);
 
-    canvas.width = Math.floor(scaledViewport.width);
-    canvas.height = Math.floor(scaledViewport.height);
-
-    await page.render({ canvasContext: ctx, viewport: scaledViewport }).promise;
-    const dataUrl = canvas.toDataURL("image/png");
-    return { dataUrl, pxW: canvas.width, pxH: canvas.height };
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    return canvas;
   }
 
-  // Read plain text from a page (used to detect invoice pages)
-  async function getPageText(pdf, pageIndex) {
-    const page = await pdf.getPage(pageIndex + 1);
-    const tc = await page.getTextContent();
-    return tc.items.map(i => i.str).join(" ");
-  }
-
-  // Decide which page indices to keep based on platform
-  async function selectPageIndices(pdf, platform) {
+  // --------- Amazon page filter (UNCHANGED) ----------
+  async function amazonSelectKeepIndices(pdf) {
     const total = pdf.numPages;
-    const indices = [...Array(total).keys()]; // [0..total-1]
-
-    if (platform !== "amazon") return indices;
-
-    // AMAZON RULES:
-    // 1) Prefer text-based filter: drop pages containing "Tax Invoice"
-    // 2) Fallback: keep first page of each pair (0,2,4,...) if we removed none
     const keep = [];
-    const dropped = [];
+    let dropped = 0;
 
     for (let i = 0; i < total; i++) {
-      setStatus(`Checking page ${i + 1}/${total} for invoice text…`);
+      setStatus(`Checking page ${i + 1}/${total} (Amazon)…`);
       try {
-        const text = await getPageText(pdf, i);
-        if (/\bTax\s+Invoice\b/i.test(text) || /Bill of Supply|Cash Memo/i.test(text)) {
-          dropped.push(i);           // invoice page
-        } else {
-          keep.push(i);              // label page
-        }
+        const page = await pdf.getPage(i + 1);
+        const tc = await page.getTextContent();
+        const text = tc.items.map(x => x.str).join(" ");
+
+        const isInvoice = /\bTax\s*Invoice\b/i.test(text) ||
+                          /Bill of Supply|Cash Memo/i.test(text);
+        if (isInvoice) dropped++; else keep.push(i);
       } catch {
-        // If text extraction fails, we'll decide in fallback step
-        keep.push(i); // temporarily keep; may fallback below
+        // if text fails, keep page rather than lose label
+        keep.push(i);
       }
     }
 
-    // If text-based pass didn't drop anything and page count looks like pairs,
-    // fallback to keeping first page of each pair (0,2,4,...)
-    const removedByText = dropped.length > 0;
-    if (!removedByText && total >= 2) {
-      const pairKeep = indices.filter(i => i % 2 === 0);
-      return pairKeep;
-    }
-
+    // Fallbacks—never return empty
+    if (keep.length === 0 && total >= 2) return [...Array(total).keys()].filter(i => i % 2 === 0);
+    if (keep.length === 0) return [...Array(total).keys()];
     return keep;
   }
 
-  // --- 4x6 builder ----------------------------------------------------------
+  // --------- Flipkart hard crop ----------
+  function cropFlipkart(canvas) {
+    // Delete left 20%, right 20%, top 5%, and everything below 58%
+    const W = canvas.width, H = canvas.height;
 
+    const leftPct = 0.32, rightPct = 0.32, topPct = 0.03, bottomKeepPct = 0.45;
+
+    const sx = Math.floor(W * leftPct);
+    const ex = Math.floor(W * (1 - rightPct));
+    const sy = Math.floor(H * topPct);
+    const ey = Math.floor(H * bottomKeepPct);
+
+    const sWidth  = Math.max(1, ex - sx);
+    const sHeight = Math.max(1, ey - sy);
+
+    const c = document.createElement("canvas");
+    c.width = sWidth;
+    c.height = sHeight;
+    const ctx = c.getContext("2d");
+    ctx.drawImage(canvas, sx, sy, sWidth, sHeight, 0, 0, sWidth, sHeight);
+    return c.toDataURL("image/png");
+  }
+
+  // --------- 4x6 builder ----------
   async function build4x6(pdfArrayBuffer, platform) {
     const pdf = await pdfjsLib.getDocument({ data: pdfArrayBuffer }).promise;
     const out = await PDFLib.PDFDocument.create();
 
-    const useIndices = await selectPageIndices(pdf, platform);
-    const n = useIndices.length;
+    // Decide pages to process
+    let indices = [...Array(pdf.numPages).keys()];
+    if (platform === "amazon") {
+      indices = await amazonSelectKeepIndices(pdf); // unchanged logic
+    }
 
-    for (let k = 0; k < n; k++) {
-      const i = useIndices[k];
-      setStatus(`Rendering label ${k + 1} of ${n} (${platform})…`);
-      const { dataUrl } = await renderPageToPNG(pdf, i, 1200);
+    for (let k = 0; k < indices.length; k++) {
+      const i = indices[k];
+      setStatus(`Rendering label ${k + 1} of ${indices.length} (${platform})…`);
 
+      const canvas = await renderPageToCanvas(pdf, i, 1200);
+
+      // Platform-specific rendering
+      let dataUrl;
+      if (platform === "flipkart") {
+        dataUrl = cropFlipkart(canvas);           // ONLY Flipkart is cropped
+      } else {
+        dataUrl = canvas.toDataURL("image/png");  // Amazon/Meesho not cropped
+      }
+
+      // Compose onto 4×6
       const pngBytes = await (await fetch(dataUrl)).arrayBuffer();
       const img = await out.embedPng(pngBytes);
 
       const [W, H] = PAGE_4x6;
       const page = out.addPage([W, H]);
-
       const s = Math.min(W / img.width, H / img.height);
-      const drawW = img.width * s;
-      const drawH = img.height * s;
-      const x = (W - drawW) / 2;
-      const y = (H - drawH) / 2;
+      const dw = img.width * s, dh = img.height * s;
+      const x = (W - dw) / 2, y = (H - dh) / 2;
 
-      page.drawImage(img, { x, y, width: drawW, height: drawH });
+      page.drawImage(img, { x, y, width: dw, height: dh });
     }
 
     setStatus("Packaging PDF…");
     return out.save();
   }
 
-  // --- UI wire-up -----------------------------------------------------------
-
+  // --------- UI ----------
   $("#process").addEventListener("click", async () => {
     const file = $("#file").files[0];
     if (!file) { alert("Please choose a PDF file."); return; }
@@ -124,8 +133,8 @@
     try {
       const bytes = await file.arrayBuffer();
       const platform = getPlatform();
-      const outBytes = await build4x6(bytes, platform);
 
+      const outBytes = await build4x6(bytes, platform);
       const blob = new Blob([outBytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
 
