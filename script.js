@@ -58,7 +58,7 @@
 
   // --------- Flipkart hard crop ----------
   function cropFlipkart(canvas) {
-    // Delete left 20%, right 20%, top 5%, and everything below 58%
+    // (kept exactly as you had it)
     const W = canvas.width, H = canvas.height;
 
     const leftPct = 0.28, rightPct = 0.28, topPct = 0.02, bottomKeepPct = 0.45;
@@ -148,4 +148,37 @@
       alert("Failed: " + (e?.message || e));
     }
   });
+
+  // ---------- NEW: show popup when Meesho is selected ----------
+  // --- Beautiful popup for Meesho ---
+(function bindMeeshoPopup() {
+  const meesho = document.querySelector('input[name="platform"][value="meesho"]');
+  const overlay = document.getElementById("popup-overlay");
+  const closeBtn = document.getElementById("popup-close");
+
+  function showPopup() {
+    overlay.classList.remove("hidden");
+  }
+
+  function hidePopup() {
+    overlay.classList.add("hidden");
+  }
+
+  if (meesho) {
+    meesho.addEventListener("change", () => {
+      if (meesho.checked) showPopup();
+    });
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener("click", hidePopup);
+  }
+
+  if (overlay) {
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) hidePopup();
+    });
+  }
+})();
+
 })();
