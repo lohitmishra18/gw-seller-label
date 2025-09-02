@@ -22,22 +22,22 @@
     <p>Upload your label PDF. Everything runs 100% in your browser.</p>
 
     <div class="controls">
-      <input type="file" id="file" accept="application/pdf" />
+  <input type="file" id="file" accept="application/pdf" />
 
-      <!-- NEW: Marketplace radios -->
-      <div class="modes" id="marketplaces">
-        <strong style="margin-right:8px;">Marketplace:</strong>
-        <label><input type="radio" name="platform" value="amazon" checked /> Amazon</label>
-        <label><input type="radio" name="platform" value="flipkart" /> Flipkart</label>
-        <label><input type="radio" name="platform" value="meesho" /> Meesho</label>
-      </div>
+  <div class="modes" id="marketplaces">
+    <strong style="margin-right:8px;">Marketplace:</strong>
+    <label><input type="radio" name="platform" value="amazon" checked /> Amazon</label>
+    <label><input type="radio" name="platform" value="flipkart" /> Flipkart</label>
+    <label><input type="radio" name="platform" value="meesho" /> Meesho</label>
+  </div>
 
-      <!-- Size is fixed to 4×6 by design -->
-      <small style="color:#64748b;">Output size: <b>4×6</b> (default)</small>
+  <small style="color:#64748b;">Output size: <b>4×6</b> (default)</small>
 
-      <button id="process">Process Labels</button>
-      <a id="download" class="hidden">⬇ Download PDF</a>
-    </div>
+  <button id="process">Process Labels</button>
+  <a id="download" class="hidden">⬇ Download PDF</a>
+  <button id="summary-btn" disabled>Summary</button>
+</div>
+
 
     <div id="status" class="status"></div>
   </div>  

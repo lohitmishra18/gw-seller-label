@@ -137,3 +137,14 @@ button:active { transform: translateY(1px); }
     transform: translateY(0);
   }
 }
+
+#download, #summary-btn { margin-top: 6px; }
+#summary-btn {
+  padding: 10px 16px;
+  border: 1px solid #111827;
+  background: #fff;
+  color: #111827;
+  border-radius: 10px;
+  cursor: pointer;
+}
+#summary-btn:disabled { opacity: .5; cursor: not-allowed; }
