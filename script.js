@@ -6,17 +6,14 @@ document.getElementById("process").onclick = async () => {
   const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
   const newPdf = await PDFLib.PDFDocument.create();
 
-  const pages = pdfDoc.getPages();
+  const pages = await newPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
 
-  for (let i = 0; i < pages.length; i++) {
-    // Correct: embed the original page
-    const [embeddedPage] = await newPdf.embedPages([pages[i]]);
-
-    // Make new blank 4x6 inch page
+  pages.forEach((p) => {
+    // Create a new 4x6 inch page
     const newPage = newPdf.addPage([288, 432]);
 
-    // Scale to fit
-    const { width, height } = embeddedPage;
+    // Scale original page to fit 4x6
+    const { width, height } = p.getSize();
     const scale = Math.min(288 / width, 432 / height);
 
     const scaledWidth = width * scale;
@@ -25,14 +22,13 @@ document.getElementById("process").onclick = async () => {
     const x = (288 - scaledWidth) / 2;
     const y = (432 - scaledHeight) / 2;
 
-    // ✅ This is the right API call
-    newPage.drawPage(embeddedPage, {
+    newPage.drawPage(p, {
       x,
       y,
       xScale: scale,
       yScale: scale,
     });
-  }
+  });
 
   const pdfBytes = await newPdf.save();
   const blob = new Blob([pdfBytes], { type: "application/pdf" });
