@@ -7,13 +7,15 @@
   /* Colors */
   --text:   #0f2e1f;   /* deep leaf */
   --muted:  #3b5c48;   /* soft leaf text */
-  --brand:  #166534;   /* primary green (dark) */
+  --brand:  #166534;   /* primary green (dark) — close to logo green */
   --brand-2:#22c55e;   /* accent green (bright) */
 
   /* Layout */
   --radius: 20px;
   --shadow: 0 16px 40px rgba(0,0,0,.15);
   --ring:   rgba(34,197,94,.28); /* focus glow */
+    --logo-green: #A3BC38;      /* matches the "Green" in your logo */
+  --logo-green-d: #8EAC2F;    /* a touch darker for hover/border */
 }
 
 *{ box-sizing: border-box; }
@@ -38,7 +40,7 @@ body{
 /* -------- Card (glass) -------- */
 .card{
   width:min(980px, 92vw);
-  background: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.00); /* you preferred near-transparent */
   backdrop-filter: blur(10px) saturate(140%);
   -webkit-backdrop-filter: blur(10px) saturate(140%);
   border-radius: var(--radius);
@@ -73,6 +75,25 @@ p{
   color:var(--muted);
 }
 
+/* Header area for the logo */
+.header{
+  display: flex;
+  justify-content: center;   /* center horizontally */
+  align-items: center;
+  margin: 8px 0 8px;
+  min-height: 60px;
+}
+
+/* Logo sizing (you set 200px height) */
+.logo{
+  display: block;
+  height: 200px;
+  width: auto;
+  max-width: min(360px, 60vw);
+  margin: 0 auto;
+  object-fit: contain;
+}
+
 /* -------- Controls -------- */
 .controls{
   display:grid;
@@ -96,28 +117,42 @@ input[type="file"]:focus{
   box-shadow: 0 0 0 6px var(--ring);
 }
 
-/* Radios as segmented control */
+/* -------- Radios as segmented control -------- */
 .modes{
   display:flex; gap:10px; align-items:center; flex-wrap:wrap;
 }
+
+/* Make 'Marketplace:' readable on your lighter/transparent card */
 .modes strong{
-  color: var(--text);
-  opacity:.95;
-  font-weight:600;
+  color: var(--text);          /* dark text for contrast */
+  font-weight:700;
   font-size:16px;
+  margin-right:8px;
+  text-shadow: 0 1px 0 rgba(255,255,255,.35); /* subtle lift on glass bg */
 }
+
+/* Radio "pills" in the same green as the logo */
 .modes label{
   display:flex; align-items:center; gap:8px;
-  background:#fff;
-  border:1px solid #e3ece6;
-  padding:8px 12px;
+  background: var(--logo-green);
+  color: #0f2e1f;               /* dark text reads better on light-lime */
+  border:1px solid var(--logo-green-d);
+  padding:8px 14px;
   border-radius:999px;
   cursor:pointer;
   transition: all .15s ease;
   user-select:none;
+  font-weight:600;
 }
-.modes label:hover{ box-shadow:0 6px 16px rgba(2,6,23,.08); transform: translateY(-1px); }
-.modes input[type="radio"]{ accent-color: var(--brand-2); }
+.modes label:hover{
+  background: var(--logo-green-d);
+  box-shadow:0 6px 16px rgba(2,6,23,.14);
+  transform: translateY(-1px);
+}
+.modes input[type="radio"]{
+  accent-color: var(--brand);   /* dark green dot rings nicely inside lime */
+}
+
 
 /* Hint text */
 small{ color:#6a8b77; }
@@ -126,7 +161,7 @@ small{ color:#6a8b77; }
 
 /* Primary CTA */
 #process{
-  background: linear-gradient(135deg, #16a34a, #166534);
+  background: linear-gradient(135deg, var(--logo-green), var(--logo-green-d));
   color:#fff;
   border:none;
   border-radius:12px;
@@ -221,27 +256,6 @@ small{ color:#6a8b77; }
 }
 .popup-card button:hover{ filter: brightness(1.05); }
 
-/* Header area for the logo */
-.header{
-  display: flex;
-  justify-content: center;   /* center horizontally */
-  align-items: center;
-  margin: 8px 0 8px;         /* small spacing around */
-  min-height: 60px;          /* keeps the card header short */
-}
-
-/* Logo sizing: wide but short, no distortion, no overlap */
-.logo{
-  display: block;
-  height: 200px;              /* ↓ set the visual height (short) */
-  width: auto;               /* keep aspect ratio */
-  max-width: min(360px, 60vw);
-  margin: 0 auto;            /* ensure centering */
-  object-fit: contain;       /* no distortion */
-}
-
-
-
 @keyframes fadeInUp{
   from{ opacity:0; transform: translateY(12px); }
   to  { opacity:1; transform: translateY(0); }
@@ -254,7 +268,6 @@ small{ color:#6a8b77; }
 }
 
 /* -------- Optional Dark Mode -------- */
-/* Keeps the same background image but darkens overlay for contrast */
 @media (prefers-color-scheme: dark){
   :root{
     --text:  #e6f4ec;
@@ -262,17 +275,19 @@ small{ color:#6a8b77; }
   }
   body{
     background:
-        linear-gradient(180deg, rgba(255, 255, 255, .45), rgba(255, 255, 255, .65)),
-        url("gw_background.jpg") center top / cover no-repeat fixed;
+      linear-gradient(180deg, rgba(255, 255, 255, .45), rgba(255, 255, 255, .65)),
+      url("gw_background.jpg") center top / cover no-repeat fixed;
   }
   .card{
-    background: rgba(16,24,20,.72);
+    background: rgba(16,24,20,0.00);
     border-color: rgba(255,255,255,.12);
   }
+  /* Keep radio pills green in dark mode as well */
+    .modes strong{ color:#1a934e; }  /* light text in dark mode */
   .modes label{
-    background: rgba(18,28,22,.9);
-    border-color: rgba(255,255,255,.10);
-    color:#e6f4ec;
+    background: var(--logo-green);
+    border-color: var(--logo-green-d);
+    color:#0f2e1f;
   }
   input[type="file"]{
     background:#0f1a14; border-color:#1f2e26; color:#e6f4ec;
@@ -283,9 +298,4 @@ small{ color:#6a8b77; }
     color:#e6f4ec;
   }
   #download:hover, #summary-btn:hover{ border-color:#2b4336; }
-}
-
-@media (min-width: 720px){
-  .logo-wrap{ height: 64px; }
-  .logo{ clip-path: inset(8% 3% 10% 5% round 2px); }
 }
