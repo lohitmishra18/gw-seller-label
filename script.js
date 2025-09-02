@@ -8,13 +8,28 @@ document.getElementById("process").onclick = async () => {
 
   const pages = pdfDoc.getPages();
 
-  // Loop through uploaded pages
   for (let i = 0; i < pages.length; i++) {
-    const [origPage] = await newPdf.copyPages(pdfDoc, [i]);
+    // Embed original page into new PDF
+    const [embeddedPage] = await newPdf.embedPages([pages[i]]);
 
-    // Scale to 4x6 inch (288x432 pt @ 72dpi)
+    // Create new 4x6 inch page (288x432 points)
     const newPage = newPdf.addPage([288, 432]);
-    newPage.drawPage(origPage, { x: 0, y: 0, width: 288, height: 432 });
+
+    // Draw the embedded page scaled to fit 4x6
+    const { width, height } = embeddedPage;
+    const scale = Math.min(288 / width, 432 / height);
+
+    const scaledWidth = width * scale;
+    const scaledHeight = height * scale;
+    const x = (288 - scaledWidth) / 2;
+    const y = (432 - scaledHeight) / 2;
+
+    newPage.drawPage(embeddedPage, {
+      x,
+      y,
+      width: scaledWidth,
+      height: scaledHeight,
+    });
   }
 
   const pdfBytes = await newPdf.save();
