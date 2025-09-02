@@ -1,74 +1,91 @@
-/* ========== Base ========== */
+/* ===============================
+   The Green Wealth Label Tool — Styles
+   =============================== */
+
+/* -------- Theme tokens -------- */
 :root{
-  --bg: #f5f7fb;
-  --bg-gradient: radial-gradient(1200px 800px at 30% 10%, #eaf2ff 0%, transparent 50%),
-                 radial-gradient(900px 600px at 90% 40%, #f9eaff 0%, transparent 55%),
-                 radial-gradient(800px 700px at 10% 90%, #e6fff4 0%, transparent 60%);
-  --card: #ffffff;
-  --text: #0f172a;
-  --muted: #616b7b;
-  --brand: #111827;
-  --brand-2: #0ea5e9;
-  --radius: 18px;
-  --shadow: 0 20px 50px rgba(2,6,23,.08), 0 10px 24px rgba(2,6,23,.05);
-  --ring: rgba(14,165,233,.35);
+  /* Colors */
+  --text:   #0f2e1f;   /* deep leaf */
+  --muted:  #3b5c48;   /* soft leaf text */
+  --brand:  #166534;   /* primary green (dark) */
+  --brand-2:#22c55e;   /* accent green (bright) */
+
+  /* Layout */
+  --radius: 20px;
+  --shadow: 0 16px 40px rgba(0,0,0,.15);
+  --ring:   rgba(34,197,94,.28); /* focus glow */
 }
 
 *{ box-sizing: border-box; }
 html,body{ height:100%; }
+
+/* -------- Background + base -------- */
 body{
   margin:0;
   font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   color:var(--text);
-  background: var(--bg);
-  background-image: var(--bg-gradient);
+
+  /* Leafy background with soft white overlay for legibility */
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.75), rgba(255,255,255,.85)),
+    url("gw_background.jpg") center center / cover no-repeat fixed;
+
   display:grid;
   place-items:center;
   padding:28px;
 }
 
-/* ========== Card ========== */
+/* -------- Card (glass) -------- */
 .card{
   width:min(980px, 92vw);
-  background: linear-gradient(180deg, rgba(255,255,255,.86), rgba(255,255,255,.92));
-  backdrop-filter: blur(6px);
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
   border-radius: var(--radius);
   padding: 34px 38px 40px;
   box-shadow: var(--shadow);
   position:relative;
+  border:1px solid rgba(255,255,255,0.35);
 }
 .card:after{
   content:"";
   position:absolute; inset:-1px;
   border-radius: calc(var(--radius) + 1px);
   pointer-events:none;
-  background: linear-gradient(180deg, rgba(14,165,233,.18), rgba(168,85,247,.14));
+  background: linear-gradient(180deg, rgba(34,197,94,.18), rgba(22,101,52,.14));
   mask: linear-gradient(#000,#000) content-box, linear-gradient(#000,#000);
   -webkit-mask: linear-gradient(#000,#000) content-box, linear-gradient(#000,#000);
   padding:1px;
   opacity:.6;
 }
 
-/* Header */
+/* -------- Header -------- */
+.card h1,
+.card p { text-align:center; width:100%; }
+
 h1{
   margin:0 0 8px;
   font-size: clamp(28px, 3.2vw, 40px);
   letter-spacing:.2px;
 }
-p{ margin:0 0 22px; color:var(--muted); }
+p{
+  margin:0 0 26px;
+  color:var(--muted);
+}
 
-/* ========== Controls ========== */
+/* -------- Controls -------- */
 .controls{
   display:grid;
   grid-template-columns: 1fr;
   justify-items:center;
-  gap: 14px;
+  gap:14px;
 }
 
+/* File input */
 input[type="file"]{
   width:min(520px, 90%);
   padding:12px 14px;
-  border:1px solid #e6eaf1;
+  border:1px solid #dfe7e2;
   border-radius:12px;
   background:#fff;
   outline:none;
@@ -83,30 +100,33 @@ input[type="file"]:focus{
 .modes{
   display:flex; gap:10px; align-items:center; flex-wrap:wrap;
 }
-.modes strong{ color: var(--text);     /* use main text color */
-  opacity: .92;
-  font-weight: 600; }
+.modes strong{
+  color: var(--text);
+  opacity:.95;
+  font-weight:600;
+  font-size:16px;
+}
 .modes label{
   display:flex; align-items:center; gap:8px;
   background:#fff;
-  border:1px solid #e8ecf4;
+  border:1px solid #e3ece6;
   padding:8px 12px;
   border-radius:999px;
   cursor:pointer;
   transition: all .15s ease;
   user-select:none;
 }
+.modes label:hover{ box-shadow:0 6px 16px rgba(2,6,23,.08); transform: translateY(-1px); }
 .modes input[type="radio"]{ accent-color: var(--brand-2); }
-.modes label:hover{ box-shadow:0 6px 16px rgba(2,6,23,.06); transform: translateY(-1px); }
 
 /* Hint text */
-small{ color:#7c8799; }
+small{ color:#6a8b77; }
 
-/* ========== Buttons ========== */
+/* -------- Buttons -------- */
 
 /* Primary CTA */
 #process{
-  background: linear-gradient(135deg, #0ea5e9, #2563eb);
+  background: linear-gradient(135deg, #16a34a, #166534);
   color:#fff;
   border:none;
   border-radius:12px;
@@ -114,16 +134,16 @@ small{ color:#7c8799; }
   font-size:16px;
   font-weight:600;
   cursor:pointer;
-  box-shadow: 0 8px 18px rgba(37,99,235,.35), 0 4px 10px rgba(14,165,233,.25);
+  box-shadow: 0 8px 18px rgba(22,101,52,.35), 0 4px 10px rgba(34,197,94,.25);
   transition: all .18s ease;
 }
 #process:hover{
   transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(37,99,235,.45), 0 6px 16px rgba(14,165,233,.35);
+  box-shadow: 0 12px 24px rgba(22,101,52,.45), 0 6px 16px rgba(34,197,94,.35);
 }
 #process:active{
   transform: translateY(0);
-  box-shadow: 0 6px 14px rgba(37,99,235,.35);
+  box-shadow: 0 6px 14px rgba(22,101,52,.35);
 }
 #process:disabled{
   background: linear-gradient(135deg, #9ca3af, #6b7280);
@@ -131,7 +151,7 @@ small{ color:#7c8799; }
   box-shadow:none;
 }
 
-/* Row layout for secondary buttons */
+/* Secondary actions row */
 .button-row{
   display:flex;
   gap:12px;
@@ -144,21 +164,21 @@ small{ color:#7c8799; }
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  min-width: 170px;
+  min-width:170px;
   padding:12px 18px;
   border-radius:12px;
   font-weight:600;
   text-decoration:none;
-  border:1px solid rgba(255,255,255,.18);
-  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(245,247,250,.92));
+  border:1px solid rgba(16,94,52,.18);
+  background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(246,252,248,.96));
   box-shadow: 0 8px 18px rgba(2,6,23,.10);
-  color:#0f172a;
+  color:var(--text);
   transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease;
 }
 #download:hover, #summary-btn:hover{
   transform: translateY(-1px);
   box-shadow: 0 12px 26px rgba(2,6,23,.14);
-  border-color: rgba(17,24,39,.25);
+  border-color: rgba(16,94,52,.28);
 }
 #summary-btn:disabled{
   opacity:.45;
@@ -171,11 +191,11 @@ small{ color:#7c8799; }
 .status{
   margin-top:14px;
   min-height:22px;
-  color:#6b7280;
+  color:#5d7a69;
   font-size:14px;
 }
 
-/* ========== Popup modal ========== */
+/* -------- Popup modal (Meesho) -------- */
 .popup-overlay{
   position: fixed; inset:0;
   background: rgba(0,0,0,.55);
@@ -188,59 +208,58 @@ small{ color:#7c8799; }
   background:#fff;
   border-radius:14px;
   padding:24px 28px;
-  box-shadow: 0 10px 40px rgba(0,0,0,.25);
+  box-shadow:0 10px 40px rgba(0,0,0,.25);
   text-align:center;
   animation: fadeInUp .22s ease;
-  max-width: 340px;
+  max-width:340px;
 }
-.popup-card h2{ margin:0 0 8px; color:#111827; font-size:20px; }
-.popup-card p{ margin:0 0 18px; color:#4b5563; }
+.popup-card h2{ margin:0 0 8px; color:#0f2e1f; font-size:20px; }
+.popup-card p { margin:0 0 18px; color:#3b5c48; }
 .popup-card button{
-  background:#111827; color:#fff; border:0; padding:10px 18px; border-radius:8px; cursor:pointer; font-weight:600;
+  background: linear-gradient(135deg, #16a34a, #166534);
+  color:#fff; border:0; padding:10px 18px; border-radius:8px; cursor:pointer; font-weight:600;
 }
-.popup-card button:hover{ background:#374151; }
+.popup-card button:hover{ filter: brightness(1.05); }
 
 @keyframes fadeInUp{
   from{ opacity:0; transform: translateY(12px); }
-  to{ opacity:1; transform: translateY(0); }
+  to  { opacity:1; transform: translateY(0); }
 }
 
-/* Center the heading + subtitle */
-.card h1, 
-.card p {
-  text-align: center;
-  width: 100%;
+/* -------- Small screens -------- */
+@media (max-width: 520px){
+  .button-row{ flex-direction: column; }
+  #download, #summary-btn{ min-width: 100%; }
 }
 
-/* Optional: give p a bit more breathing room below */
-.card p {
-  margin-bottom: 26px;
-}
-
-
-/* ========== Dark mode ========== */
+/* -------- Optional Dark Mode -------- */
+/* Keeps the same background image but darkens overlay for contrast */
 @media (prefers-color-scheme: dark){
   :root{
-    --bg: #0b1020;
-    --card: #0f1426;
-    --text: #e5e7eb;
-    --muted: #a1a8b6;
-    --brand: #e5e7eb;
+    --text:  #e6f4ec;
+    --muted: #b8d0c2;
   }
-  body{ background: radial-gradient(1000px 600px at 10% 0%, #152040 0%, transparent 60%),
-                   radial-gradient(800px 500px at 90% 80%, #1a263f 0%, transparent 55%),
-                   #0b1020; }
-  .card{ background: linear-gradient(180deg, rgba(19,25,45,.9), rgba(19,25,45,.92)); }
-  .modes label{ background:#141b30; border-color:#24304a; color:#d5d9e3; }
-  input[type="file"]{ background:#12192c; border-color:#1e2740; color:#d9ddee; }
+  body{
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, .45), rgba(255, 255, 255, .65)),
+        url("gw_background.jpg") center top / cover no-repeat fixed;
+  }
+  .card{
+    background: rgba(16,24,20,.72);
+    border-color: rgba(255,255,255,.12);
+  }
+  .modes label{
+    background: rgba(18,28,22,.9);
+    border-color: rgba(255,255,255,.10);
+    color:#e6f4ec;
+  }
+  input[type="file"]{
+    background:#0f1a14; border-color:#1f2e26; color:#e6f4ec;
+  }
   #download, #summary-btn{
-    border-color:#27314a;
-    background: linear-gradient(180deg, rgba(26,38,63,.95), rgba(20,30,53,.95));
-    color:#e5e7eb;
+    border-color:#213328;
+    background: linear-gradient(180deg, rgba(18,28,22,.95), rgba(14,22,18,.95));
+    color:#e6f4ec;
   }
-  #download:hover, #summary-btn:hover{ border-color:#3a4768; }
-  .modes strong{
-    color: #e5e7eb;
-    opacity: 1;
-  }
+  #download:hover, #summary-btn:hover{ border-color:#2b4336; }
 }
