@@ -61,7 +61,7 @@
     // Delete left 20%, right 20%, top 5%, and everything below 58%
     const W = canvas.width, H = canvas.height;
 
-    const leftPct = 0.24, rightPct = 0.24, topPct = 0.01, bottomKeepPct = 0.45;
+    const leftPct = 0.28, rightPct = 0.28, topPct = 0.02, bottomKeepPct = 0.45;
 
     const sx = Math.floor(W * leftPct);
     const ex = Math.floor(W * (1 - rightPct));
