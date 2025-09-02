@@ -6,18 +6,24 @@
   <title>Local SellerBuddy (Privacy-Safe)</title>
   <link rel="stylesheet" href="style.css" />
 
-  <!-- pdf-lib (pinned) -->
+  <!-- PDF.js (render to canvas) -->
+  <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+  <script>
+    // IMPORTANT: use absolute HTTPS worker path so GitHub Pages doesn't block it.
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+  </script>
+
+  <!-- pdf-lib (generate output PDF) -->
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 </head>
 <body>
   <div class="card">
     <h1>📦 Local SellerBuddy (Privacy-Safe)</h1>
-    <p>Upload your label PDF. Everything runs in your browser.</p>
+    <p>Upload your label PDF. Everything runs 100% in your browser.</p>
 
     <div class="controls">
-      <label class="file">
-        <input type="file" id="file" accept="application/pdf" />
-      </label>
+      <input type="file" id="file" accept="application/pdf" />
 
       <div class="modes">
         <label><input type="radio" name="mode" value="4x6" checked /> 4×6 pages</label>
