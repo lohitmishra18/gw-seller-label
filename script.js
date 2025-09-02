@@ -295,33 +295,46 @@ function _extractSkuQty(picked) {
 async function _buildFlipkartSummary(bytes) {
   const src = await pdfjsLib.getDocument({ data: bytes }).promise;
 
-  // Aggregate tallies
-  const tallies = new Map(); // sku -> { qty, orders }
+  // ---- Tally by (SKU, QTY) pair ----
+  // key: `${sku}||${qty}` -> orders count
+  const tallies = new Map();
   for (let i = 0; i < src.numPages; i++) {
     const picked = await _getTextInsideFlipkartCrop(src, i);
     const { sku, qty } = _extractSkuQty(picked);
     if (!sku) continue;
-    const prev = tallies.get(sku) || { qty: 0, orders: 0 };
-    tallies.set(sku, { qty: prev.qty + (qty || 1), orders: prev.orders + 1 });
+
+    const q = Number.isFinite(qty) ? qty : 1;
+    const key = `${sku}||${q}`;
+    tallies.set(key, (tallies.get(key) || 0) + 1);
   }
 
-  // Compose summary as A4
+  // Convert to rows
+  const rows = Array.from(tallies.entries()).map(([key, orders]) => {
+    const [sku, qtyStr] = key.split("||");
+    const qty = parseInt(qtyStr, 10);
+    return { sku, qty, orders };
+  });
+
+  // Total orders = sum of orders over all (SKU, QTY) pairs
+  const totalOrders = rows.reduce((s, r) => s + r.orders, 0);
+
+  // ---- Compose summary PDF (A4) ----
   const out = await PDFLib.PDFDocument.create();
-  const page = out.addPage([595.28, 841.89]);
-  const { width } = page.getSize();
+  const page = out.addPage([595.28, 841.89]); // A4
   const font = await out.embedFont(PDFLib.StandardFonts.Helvetica);
   const bold = await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
 
   let y = 800;
-  page.drawText("Via The Grean Wealth", { x: 40, y, size: 22, font: bold }); y -= 28;
+  page.drawText("Via Green Wealth", { x: 40, y, size: 22, font: bold }); 
+  y -= 28;
 
-  // Total orders = sum of "orders"
-  let totalOrders = 0; for (const v of tallies.values()) totalOrders += v.orders;
-  page.drawText(`Total Orders: ${totalOrders}`, { x: 40, y, size: 14, font: bold }); y -= 22;
+  page.drawText(`Total Orders: ${totalOrders}`, { x: 40, y, size: 14, font: bold });
+  y -= 22;
 
-  // Table header + rows
-  const headers = ["sku","qty","orders"];
-  const colX = [40, 260, 320], colW = [220, 60, 60], rowH = 18;
+  // Continuous columns (no gaps)
+  const colX = [40, 260, 320];    // SKU, QTY, ORDERS
+  const colW = [220, 60, 60];
+  const rowH = 18;
 
   function cell(text, x, y, w, alignRight=false, isBold=false){
     page.drawRectangle({ x, y: y-rowH+4, width: w, height: rowH, borderColor: PDFLib.rgb(0,0,0), borderWidth: 1 });
@@ -333,24 +346,26 @@ async function _buildFlipkartSummary(bytes) {
     page.drawText(str, { x: tx, y: y - rowH + 8, size: s, font: f });
   }
 
-  // header
-  cell(headers[0], colX[0], y, colW[0], false, true);
-  cell(headers[1], colX[1], y, colW[1], true, true);
-  cell(headers[2], colX[2], y, colW[2], true, true);
+  // Header
+  cell("sku",    colX[0], y, colW[0], false, true);
+  cell("qty",    colX[1], y, colW[1], true,  true);
+  cell("orders", colX[2], y, colW[2], true,  true);
   y -= rowH;
 
-  // rows sorted by SKU
-  const rows = Array.from(tallies.entries()).sort((a,b)=>a[0].localeCompare(b[0]));
-  for (const [sku, { qty, orders }] of rows) {
+  // Sort by SKU then QTY
+  rows.sort((a, b) => a.sku.localeCompare(b.sku) || a.qty - b.qty);
+
+  for (const r of rows) {
     if (y < 80) { y = 760; out.addPage([595.28, 841.89]); }
-    cell(sku, colX[0], y, colW[0]);
-    cell(qty, colX[1], y, colW[1], true);
-    cell(orders, colX[2], y, colW[2], true);
+    cell(r.sku,    colX[0], y, colW[0]);
+    cell(r.qty,    colX[1], y, colW[1], true);
+    cell(r.orders, colX[2], y, colW[2], true);
     y -= rowH;
   }
 
   return out.save();
 }
+
 
 // Click handler: build & download summary
 if (summaryBtn) {
