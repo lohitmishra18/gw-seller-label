@@ -223,10 +223,12 @@ small{ color:#6a8b77; }
 
 .logo {
   display: block;
-  margin: 0 auto 12px;
-  max-width: 240px;   /* adjust size as needed */
-  height: auto;
+  margin: 0 auto 16px;   /* centers horizontally + some space below */
+  width: 300px;          /* increase width */
+  max-height: 80px;      /* limit height */
+  object-fit: contain;   /* keeps proportions */
 }
+
 
 
 @keyframes fadeInUp{
