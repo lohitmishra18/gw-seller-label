@@ -1,0 +1,27 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f7f9fb;
+  text-align: center;
+  padding: 30px;
+}
+
+.container {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 600px;
+  margin: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+#preview {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+#preview canvas {
+  border: 1px solid #ddd;
+  max-width: 100%;
+}

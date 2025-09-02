@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SellerBuddy Clone</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>📦 Local SellerBuddy (Privacy-Safe)</h1>
+    <p>Upload your label PDF below. Everything runs in your browser.</p>
+
+    <input type="file" id="file" accept="application/pdf">
+    <button id="process">Process Labels</button>
+
+    <div id="preview"></div>
+
+    <a id="download" style="display:none;">⬇ Download Final PDF</a>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
