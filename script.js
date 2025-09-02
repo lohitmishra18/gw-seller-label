@@ -9,26 +9,28 @@ document.getElementById("process").onclick = async () => {
   const pages = pdfDoc.getPages();
 
   for (let i = 0; i < pages.length; i++) {
-    // Embed original page into new PDF
+    // Correct: embed the original page
     const [embeddedPage] = await newPdf.embedPages([pages[i]]);
 
-    // Create new 4x6 inch page (288x432 points)
+    // Make new blank 4x6 inch page
     const newPage = newPdf.addPage([288, 432]);
 
-    // Draw the embedded page scaled to fit 4x6
+    // Scale to fit
     const { width, height } = embeddedPage;
     const scale = Math.min(288 / width, 432 / height);
 
     const scaledWidth = width * scale;
     const scaledHeight = height * scale;
+
     const x = (288 - scaledWidth) / 2;
     const y = (432 - scaledHeight) / 2;
 
+    // ✅ This is the right API call
     newPage.drawPage(embeddedPage, {
       x,
       y,
-      width: scaledWidth,
-      height: scaledHeight,
+      xScale: scale,
+      yScale: scale,
     });
   }
 
