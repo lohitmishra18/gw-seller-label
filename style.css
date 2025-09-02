@@ -221,12 +221,23 @@ small{ color:#6a8b77; }
 }
 .popup-card button:hover{ filter: brightness(1.05); }
 
-.logo {
+/* Header area for the logo */
+.header{
+  display: flex;
+  justify-content: center;   /* center horizontally */
+  align-items: center;
+  margin: 8px 0 8px;         /* small spacing around */
+  min-height: 60px;          /* keeps the card header short */
+}
+
+/* Logo sizing: wide but short, no distortion, no overlap */
+.logo{
   display: block;
-  margin: 0 auto 16px;   /* centers horizontally + some space below */
-  width: 300px;          /* increase width */
-  max-height: 80px;      /* limit height */
-  object-fit: contain;   /* keeps proportions */
+  height: 200px;              /* ↓ set the visual height (short) */
+  width: auto;               /* keep aspect ratio */
+  max-width: min(360px, 60vw);
+  margin: 0 auto;            /* ensure centering */
+  object-fit: contain;       /* no distortion */
 }
 
 
@@ -272,4 +283,9 @@ small{ color:#6a8b77; }
     color:#e6f4ec;
   }
   #download:hover, #summary-btn:hover{ border-color:#2b4336; }
+}
+
+@media (min-width: 720px){
+  .logo-wrap{ height: 64px; }
+  .logo{ clip-path: inset(8% 3% 10% 5% round 2px); }
 }
