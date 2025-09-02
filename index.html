@@ -1,23 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>SellerBuddy Clone</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Local SellerBuddy (Privacy-Safe)</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- pdf-lib (pinned) -->
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 </head>
 <body>
-  <div class="container">
+  <div class="card">
     <h1>📦 Local SellerBuddy (Privacy-Safe)</h1>
-    <p>Upload your label PDF below. Everything runs in your browser.</p>
+    <p>Upload your label PDF. Everything runs in your browser.</p>
 
-    <input type="file" id="file" accept="application/pdf">
-    <button id="process">Process Labels</button>
+    <div class="controls">
+      <label class="file">
+        <input type="file" id="file" accept="application/pdf" />
+      </label>
 
-    <div id="preview"></div>
+      <div class="modes">
+        <label><input type="radio" name="mode" value="4x6" checked /> 4×6 pages</label>
+        <label><input type="radio" name="mode" value="a4" /> A4 (2×2 grid)</label>
+      </div>
 
-    <a id="download" style="display:none;">⬇ Download Final PDF</a>
+      <button id="process">Process Labels</button>
+      <a id="download" class="hidden">⬇ Download PDF</a>
+    </div>
+
+    <div id="status" class="status"></div>
   </div>
+
   <script src="script.js"></script>
 </body>
 </html>

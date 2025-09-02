@@ -1,27 +1,81 @@
+:root {
+  --bg: #f5f7fb;
+  --card: #fff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --ring: rgba(99,102,241,.25);
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
 body {
-  font-family: Arial, sans-serif;
-  background: #f7f9fb;
-  text-align: center;
-  padding: 30px;
-}
-
-.container {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  max-width: 600px;
-  margin: auto;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-#preview {
-  margin-top: 20px;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  place-items: center;
+  padding: 24px;
 }
 
-#preview canvas {
-  border: 1px solid #ddd;
-  max-width: 100%;
+.card {
+  width: min(860px, 95vw);
+  background: var(--card);
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  text-align: center;
+}
+
+h1 { margin: 0 0 8px; }
+p { margin: 0 0 18px; color: var(--muted); }
+
+.controls {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  justify-items: center;
+  margin: 6px 0 12px;
+}
+
+.modes {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  color: var(--text);
+}
+
+input[type="file"] {
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+button {
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 10px;
+  background: #111827;
+  color: #fff;
+  cursor: pointer;
+  transition: transform .04s ease;
+}
+button:active { transform: translateY(1px); }
+
+#download {
+  display: inline-block;
+  text-decoration: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid #111827;
+  color: #111827;
+}
+.hidden { display: none; }
+
+.status {
+  margin-top: 10px;
+  min-height: 22px;
+  color: var(--muted);
+  font-size: 14px;
 }
