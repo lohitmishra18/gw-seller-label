@@ -6,15 +6,14 @@
   <title>Local SellerBuddy (Privacy-Safe)</title>
   <link rel="stylesheet" href="style.css" />
 
-  <!-- PDF.js (render to canvas) -->
+  <!-- PDF.js -->
   <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
   <script>
-    // IMPORTANT: use absolute HTTPS worker path so GitHub Pages doesn't block it.
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
   </script>
 
-  <!-- pdf-lib (generate output PDF) -->
+  <!-- pdf-lib -->
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 </head>
 <body>
@@ -25,10 +24,16 @@
     <div class="controls">
       <input type="file" id="file" accept="application/pdf" />
 
-      <div class="modes">
-        <label><input type="radio" name="mode" value="4x6" checked /> 4×6 pages</label>
-        <label><input type="radio" name="mode" value="a4" /> A4 (2×2 grid)</label>
+      <!-- NEW: Marketplace radios -->
+      <div class="modes" id="marketplaces">
+        <strong style="margin-right:8px;">Marketplace:</strong>
+        <label><input type="radio" name="platform" value="amazon" checked /> Amazon</label>
+        <label><input type="radio" name="platform" value="flipkart" /> Flipkart</label>
+        <label><input type="radio" name="platform" value="meesho" /> Meesho</label>
       </div>
+
+      <!-- Size is fixed to 4×6 by design -->
+      <small style="color:#64748b;">Output size: <b>4×6</b> (default)</small>
 
       <button id="process">Process Labels</button>
       <a id="download" class="hidden">⬇ Download PDF</a>
