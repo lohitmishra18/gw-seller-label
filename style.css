@@ -1,91 +1,93 @@
 /* ===============================
-   The Green Wealth Label Tool — Styles
+   Green Wealth Label Tool — Styles (cleaned)
    =============================== */
 
 /* -------- Theme tokens -------- */
-:root{
+:root {
   /* Colors */
-  --text:   #0f2e1f;   /* deep leaf */
-  --muted:  #3b5c48;   /* soft leaf text */
-  --brand:  #166534;   /* primary green (dark) — close to logo green */
-  --brand-2:#22c55e;   /* accent green (bright) */
+  --text: #0f2e1f;            /* deep leaf */
+  --muted: #3b5c48;           /* soft leaf text */
+  --brand: #166534;           /* primary green (dark) */
+  --brand-2: #22c55e;         /* accent green (bright) */
+  --logo-green: #A3BC38;      /* matches logo "Green" */
+  --logo-green-d: #8EAC2F;    /* darker for hover/border */
 
   /* Layout */
   --radius: 20px;
-  --shadow: 0 16px 40px rgba(0,0,0,.15);
-  --ring:   rgba(34,197,94,.28); /* focus glow */
-    --logo-green: #A3BC38;      /* matches the "Green" in your logo */
-  --logo-green-d: #8EAC2F;    /* a touch darker for hover/border */
+  --shadow: 0 16px 40px rgba(0, 0, 0, .15);
+  --ring: rgba(34, 197, 94, .28); /* focus glow */
 }
 
-*{ box-sizing: border-box; }
-html,body{ height:100%; }
+/* Global reset */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
 
 /* -------- Background + base -------- */
-body{
-  margin:0;
+body {
+  margin: 0;
+  display: grid;
+  place-items: center;
+  padding: 28px;
   font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  color:var(--text);
-
-  /* Leafy background with soft white overlay for legibility */
+  color: var(--text);
   background:
-    linear-gradient(180deg, rgba(255,255,255,.75), rgba(255,255,255,.85)),
-    url("gw_background.jpg") center center / cover no-repeat fixed;
-
-  display:grid;
-  place-items:center;
-  padding:28px;
+    linear-gradient(180deg, rgba(255, 255, 255, .75), rgba(255, 255, 255, .85)),
+    url("gw_background.jpg") center / cover no-repeat fixed;
 }
 
 /* -------- Card (glass) -------- */
-.card{
-  width:min(980px, 92vw);
-  background: rgba(255,255,255,0.00); /* you preferred near-transparent */
+.card {
+  position: relative;
+  width: min(980px, 92vw);
+  padding: 34px 38px 40px;
+  border: 1px solid rgba(255, 255, 255, .35);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0);
+  box-shadow: var(--shadow);
   backdrop-filter: blur(10px) saturate(140%);
   -webkit-backdrop-filter: blur(10px) saturate(140%);
-  border-radius: var(--radius);
-  padding: 34px 38px 40px;
-  box-shadow: var(--shadow);
-  position:relative;
-  border:1px solid rgba(255,255,255,0.35);
 }
-.card:after{
-  content:"";
-  position:absolute; inset:-1px;
+.card::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  padding: 1px;
   border-radius: calc(var(--radius) + 1px);
-  pointer-events:none;
-  background: linear-gradient(180deg, rgba(34,197,94,.18), rgba(22,101,52,.14));
-  mask: linear-gradient(#000,#000) content-box, linear-gradient(#000,#000);
-  -webkit-mask: linear-gradient(#000,#000) content-box, linear-gradient(#000,#000);
-  padding:1px;
-  opacity:.6;
+  pointer-events: none;
+  opacity: .6;
+  background: linear-gradient(180deg, rgba(34, 197, 94, .18), rgba(22, 101, 52, .14));
+  mask: linear-gradient(#000, #000) content-box, linear-gradient(#000, #000);
+  -webkit-mask: linear-gradient(#000, #000) content-box, linear-gradient(#000, #000);
 }
 
 /* -------- Header -------- */
 .card h1,
-.card p { text-align:center; width:100%; }
-
-h1{
-  margin:0 0 8px;
-  font-size: clamp(28px, 3.2vw, 40px);
-  letter-spacing:.2px;
+.card p {
+  width: 100%;
+  text-align: center;
 }
-p{
-  margin:0 0 26px;
-  color:var(--muted);
+
+h1 {
+  margin: 0 0 8px;
+  font-size: clamp(28px, 3.2vw, 40px);
+  letter-spacing: .2px;
+}
+p {
+  margin: 0 0 26px;
+  color: var(--muted);
 }
 
 /* Header area for the logo */
-.header{
+.header {
   display: flex;
-  justify-content: center;   /* center horizontally */
   align-items: center;
-  margin: 8px 0 8px;
+  justify-content: center;
   min-height: 60px;
+  margin: 8px 0;
 }
 
 /* Logo sizing (you set 200px height) */
-.logo{
+.logo {
   display: block;
   height: 200px;
   width: auto;
@@ -95,207 +97,252 @@ p{
 }
 
 /* -------- Controls -------- */
-.controls{
-  display:grid;
+.controls {
+  display: grid;
   grid-template-columns: 1fr;
-  justify-items:center;
-  gap:14px;
+  justify-items: center;
+  gap: 14px;
 }
 
 /* File input */
-input[type="file"]{
-  width:min(520px, 90%);
-  padding:12px 14px;
-  border:1px solid #dfe7e2;
-  border-radius:12px;
-  background:#fff;
-  outline:none;
+input[type="file"] {
+  width: min(520px, 90%);
+  padding: 12px 14px;
+  border: 1px solid #dfe7e2;
+  border-radius: 12px;
+  background: #fff;
+  outline: none;
   transition: box-shadow .15s ease, border-color .15s ease;
 }
-input[type="file"]:focus{
+input[type="file"]:focus {
   border-color: var(--brand-2);
   box-shadow: 0 0 0 6px var(--ring);
 }
 
 /* -------- Radios as segmented control -------- */
-.modes{
-  display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+.modes {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-/* Make 'Marketplace:' readable on your lighter/transparent card */
-.modes strong{
-  color: var(--text);          /* dark text for contrast */
-  font-weight:700;
-  font-size:16px;
-  margin-right:8px;
-  text-shadow: 0 1px 0 rgba(255,255,255,.35); /* subtle lift on glass bg */
+/* Make 'Marketplace:' readable on lighter/transparent card */
+.modes strong {
+  margin-right: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .35);
 }
 
-/* Radio "pills" in the same green as the logo */
-.modes label{
-  display:flex; align-items:center; gap:8px;
+/* Radio "pills" matching logo green */
+.modes label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--logo-green-d);
+  border-radius: 999px;
   background: var(--logo-green);
-  color: #0f2e1f;               /* dark text reads better on light-lime */
-  border:1px solid var(--logo-green-d);
-  padding:8px 14px;
-  border-radius:999px;
-  cursor:pointer;
-  transition: all .15s ease;
-  user-select:none;
-  font-weight:600;
+  color: #0f2e1f;
+  user-select: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
 }
-.modes label:hover{
-  background: var(--logo-green-d);
-  box-shadow:0 6px 16px rgba(2,6,23,.14);
+.modes label:hover {
   transform: translateY(-1px);
+  background: var(--logo-green-d);
+  box-shadow: 0 6px 16px rgba(2, 6, 23, .14);
 }
-.modes input[type="radio"]{
-  accent-color: var(--brand);   /* dark green dot rings nicely inside lime */
+.modes input[type="radio"] {
+  accent-color: var(--brand);
 }
-
 
 /* Hint text */
-small{ color:#6a8b77; }
+small { color: #6a8b77; }
 
 /* -------- Buttons -------- */
 
 /* Primary CTA */
-#process{
+#process {
+  padding: 14px 26px;
+  border: none;
+  border-radius: 12px;
   background: linear-gradient(135deg, var(--logo-green), var(--logo-green-d));
-  color:#fff;
-  border:none;
-  border-radius:12px;
-  padding:14px 26px;
-  font-size:16px;
-  font-weight:600;
-  cursor:pointer;
-  box-shadow: 0 8px 18px rgba(22,101,52,.35), 0 4px 10px rgba(34,197,94,.25);
-  transition: all .18s ease;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow:
+    0 8px 18px rgba(22, 101, 52, .35),
+    0 4px 10px rgba(34, 197, 94, .25);
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
 }
-#process:hover{
+#process:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(22,101,52,.45), 0 6px 16px rgba(34,197,94,.35);
+  box-shadow:
+    0 12px 24px rgba(22, 101, 52, .45),
+    0 6px 16px rgba(34, 197, 94, .35);
 }
-#process:active{
+#process:active {
   transform: translateY(0);
-  box-shadow: 0 6px 14px rgba(22,101,52,.35);
+  box-shadow: 0 6px 14px rgba(22, 101, 52, .35);
 }
-#process:disabled{
+#process:disabled {
   background: linear-gradient(135deg, #9ca3af, #6b7280);
-  cursor:not-allowed;
-  box-shadow:none;
+  box-shadow: none;
+  cursor: not-allowed;
 }
 
 /* Secondary actions row */
-.button-row{
-  display:flex;
-  gap:12px;
-  align-items:center;
-  justify-content:center;
+.button-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
 }
 
 /* Download & Summary */
-#download, #summary-btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  min-width:170px;
-  padding:12px 18px;
-  border-radius:12px;
-  font-weight:600;
-  text-decoration:none;
-  border:1px solid rgba(16,94,52,.18);
-  background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(246,252,248,.96));
-  box-shadow: 0 8px 18px rgba(2,6,23,.10);
-  color:var(--text);
-  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease;
+#download,
+#summary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 170px;
+  padding: 12px 18px;
+  border: 1px solid rgba(16, 94, 52, .18);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .96), rgba(246, 252, 248, .96));
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 8px 18px rgba(2, 6, 23, .10);
+  transition:
+    transform .15s ease,
+    box-shadow .15s ease,
+    border-color .15s ease,
+    background .15s ease;
 }
-#download:hover, #summary-btn:hover{
+#download:hover,
+#summary-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 12px 26px rgba(2,6,23,.14);
-  border-color: rgba(16,94,52,.28);
+  border-color: rgba(16, 94, 52, .28);
+  box-shadow: 0 12px 26px rgba(2, 6, 23, .14);
 }
-#summary-btn:disabled{
-  opacity:.45;
-  cursor:not-allowed;
-  transform:none;
-  box-shadow:none;
+#summary-btn:disabled {
+  opacity: .45;
+  box-shadow: none;
+  transform: none;
+  cursor: not-allowed;
 }
 
 /* Status line */
-.status{
-  margin-top:14px;
-  min-height:22px;
-  color:#5d7a69;
-  font-size:14px;
+.status {
+  min-height: 22px;
+  margin-top: 14px;
+  font-size: 14px;
+  color: #5d7a69;
 }
 
 /* -------- Popup modal (Meesho) -------- */
-.popup-overlay{
-  position: fixed; inset:0;
-  background: rgba(0,0,0,.55);
-  display:flex; align-items:center; justify-content:center;
+.popup-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, .55);
   z-index: 999;
 }
-.popup-overlay.hidden{ display:none; }
+.popup-overlay.hidden { display: none; }
 
-.popup-card{
-  background:#fff;
-  border-radius:14px;
-  padding:24px 28px;
-  box-shadow:0 10px 40px rgba(0,0,0,.25);
-  text-align:center;
+.popup-card {
+  max-width: 340px;
+  padding: 24px 28px;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, .25);
+  text-align: center;
   animation: fadeInUp .22s ease;
-  max-width:340px;
 }
-.popup-card h2{ margin:0 0 8px; color:#0f2e1f; font-size:20px; }
-.popup-card p { margin:0 0 18px; color:#3b5c48; }
-.popup-card button{
+.popup-card h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  color: #0f2e1f;
+}
+.popup-card p {
+  margin: 0 0 18px;
+  color: #3b5c48;
+}
+.popup-card button {
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 8px;
   background: linear-gradient(135deg, #16a34a, #166534);
-  color:#fff; border:0; padding:10px 18px; border-radius:8px; cursor:pointer; font-weight:600;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter .18s ease;
 }
-.popup-card button:hover{ filter: brightness(1.05); }
+.popup-card button:hover { filter: brightness(1.05); }
 
-@keyframes fadeInUp{
-  from{ opacity:0; transform: translateY(12px); }
-  to  { opacity:1; transform: translateY(0); }
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* -------- Small screens -------- */
-@media (max-width: 520px){
-  .button-row{ flex-direction: column; }
-  #download, #summary-btn{ min-width: 100%; }
+@media (max-width: 520px) {
+  .button-row { flex-direction: column; }
+  #download, #summary-btn { min-width: 100%; }
 }
 
 /* -------- Optional Dark Mode -------- */
-@media (prefers-color-scheme: dark){
-  :root{
-    --text:  #e6f4ec;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #e6f4ec;
     --muted: #0c110e;
   }
-  body{
+
+  body {
     background:
       linear-gradient(180deg, rgba(255, 255, 255, .45), rgba(255, 255, 255, .65)),
       url("gw_background.jpg") center top / cover no-repeat fixed;
   }
-  .card{
-    background: rgba(16,24,20,0.00);
-    border-color: rgba(255,255,255,.12);
+
+  .card {
+    background: rgba(16, 24, 20, 0);
+    border-color: rgba(255, 255, 255, .12);
   }
+
   /* Keep radio pills green in dark mode as well */
-    .modes strong{ color:#1a934e; }  /* light text in dark mode */
-  .modes label{
+  .modes strong { color: #1a934e; }
+  .modes label {
     background: var(--logo-green);
     border-color: var(--logo-green-d);
-    color:#0f2e1f;
+    color: #0f2e1f;
   }
-  input[type="file"]{
-    background:#0f1a14; border-color:#1f2e26; color:#e6f4ec;
+
+  input[type="file"] {
+    background: #0f1a14;
+    border-color: #1f2e26;
+    color: #e6f4ec;
   }
-  #download, #summary-btn{
-    border-color:#213328;
-    background: linear-gradient(180deg, rgba(18,28,22,.95), rgba(14,22,18,.95));
-    color:#e6f4ec;
+
+  #download,
+  #summary-btn {
+    border-color: #213328;
+    background: linear-gradient(180deg, rgba(18, 28, 22, .95), rgba(14, 22, 18, .95));
+    color: #e6f4ec;
   }
-  #download:hover, #summary-btn:hover{ border-color:#2b4336; }
+
+  #download:hover,
+  #summary-btn:hover { border-color: #2b4336; }
+}
+
+/* -------- Reduced motion -------- */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
 }
