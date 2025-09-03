@@ -155,7 +155,8 @@ const summaryBtn = document.getElementById("summary-btn");
 // Flipkart-only enabling
 document.addEventListener("change", (e) => {
   if (e.target && e.target.matches('input[name="platform"]')) {
-    summaryBtn.disabled = e.target.value !== "flipkart";
+    const v = e.target.value;
+    summaryBtn.disabled = !(v === "flipkart" || v === "amazon");
   }
 });
 
@@ -366,21 +367,131 @@ async function _buildFlipkartSummary(bytes) {
   return out.save();
 }
 
+// ===== Amazon Summary (invoice text parsing) =====
+
+// Pulls the whole page text and returns a single string
+async function _amazonPageText(pdf, pageIndex) {
+  const page = await pdf.getPage(pageIndex + 1);
+  const tc = await page.getTextContent();
+  return (tc.items || []).map(x => (x.str || "")).join(" ");
+}
+
+// Extracts the SKU token that appears inside parentheses in description,
+// e.g. "... | B0FGDD62P5 ( PROM_900G )" or "( PROM_3600G(2) )".
+// We ignore ASINs like B0FGDD62P5 and only accept tokens with an underscore.
+function _amazonExtractSku(text) {
+  const parenTokens = Array.from(text.matchAll(/\(\s*([A-Z0-9_]+(?:\(\d+\))?)\s*\)/g))
+    .map(m => (m[1] || "").trim().toUpperCase());
+
+  // Keep things that look like PROM_* (or at least contain an underscore), but not ASINs (B0...).
+  const sku = parenTokens.find(tok => tok.includes("_") && !/^B0[A-Z0-9]{8,}$/i.test(tok));
+  return sku || null;
+}
+
+// Extracts quantity from the invoice line. There are two robust fallbacks:
+// 1) "Qty  1" pattern
+// 2) Price  QTY  Price pattern: "₹294.00  1  ₹294.00"
+function _amazonExtractQty(text) {
+  const m1 = text.match(/\bQty\s+(\d+)\b/i);
+  if (m1) return parseInt(m1[1], 10);
+
+  const m2 = text.match(/₹[\d,]+(?:\.\d{1,2})?\s+(\d+)\s+₹/);
+  if (m2) return parseInt(m2[1], 10);
+
+  return 1;
+}
+
+async function _buildAmazonSummary(bytes) {
+  const src = await pdfjsLib.getDocument({ data: bytes }).promise;
+
+  // Tally by (SKU, QTY) pair similar to Flipkart summary
+  const tallies = new Map(); // key: `${sku}||${qty}` -> orders count
+
+  for (let i = 0; i < src.numPages; i++) {
+    const text = await _amazonPageText(src, i);
+    const sku = _amazonExtractSku(text);
+    if (!sku) continue;
+
+    const qty = _amazonExtractQty(text);
+    const key = `${sku}||${qty}`;
+    tallies.set(key, (tallies.get(key) || 0) + 1);
+  }
+
+  const rows = Array.from(tallies.entries()).map(([key, orders]) => {
+    const [sku, qtyStr] = key.split("||");
+    return { sku, qty: parseInt(qtyStr, 10), orders };
+  });
+
+  const totalOrders = rows.reduce((s, r) => s + r.orders, 0);
+
+  // Compose an A4 summary PDF (mirrors your Flipkart layout)
+  const out = await PDFLib.PDFDocument.create();
+  const page = out.addPage([595.28, 841.89]); // A4
+  const font = await out.embedFont(PDFLib.StandardFonts.Helvetica);
+  const bold = await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
+
+  let y = 800;
+  page.drawText("Via Green Wealth — Amazon", { x: 40, y, size: 22, font: bold });
+  y -= 28;
+  page.drawText(`Total Orders: ${totalOrders}`, { x: 40, y, size: 14, font: bold });
+  y -= 22;
+
+  const colX = [40, 260, 320];  // SKU, QTY, ORDERS
+  const colW = [220, 60, 60];
+  const rowH = 18;
+
+  function cell(text, x, y, w, alignRight=false, isBold=false){
+    page.drawRectangle({ x, y: y-rowH+4, width: w, height: rowH, borderColor: PDFLib.rgb(0,0,0), borderWidth: 1 });
+    const f = isBold ? bold : font;
+    const s = 12;
+    const str = String(text);
+    const tw = f.widthOfTextAtSize(str, s);
+    const tx = alignRight ? x + w - tw - 6 : x + 6;
+    page.drawText(str, { x: tx, y: y - rowH + 8, size: s, font: f });
+  }
+
+  // Header
+  cell("sku",    colX[0], y, colW[0], false, true);
+  cell("qty",    colX[1], y, colW[1], true,  true);
+  cell("orders", colX[2], y, colW[2], true,  true);
+  y -= rowH;
+
+  // Sort rows by SKU then QTY
+  rows.sort((a, b) => a.sku.localeCompare(b.sku) || a.qty - b.qty);
+
+  for (const r of rows) {
+    if (y < 80) { y = 760; out.addPage([595.28, 841.89]); }
+    cell(r.sku,    colX[0], y, colW[0]);
+    cell(r.qty,    colX[1], y, colW[1], true);
+    cell(r.orders, colX[2], y, colW[2], true);
+    y -= rowH;
+  }
+
+  return out.save();
+}
+
+
 
 // Click handler: build & download summary
+// Click handler: build & download summary (Flipkart or Amazon)
 if (summaryBtn) {
   summaryBtn.addEventListener("click", async () => {
     const fileInput = document.getElementById("file");
     const file = fileInput && fileInput.files && fileInput.files[0];
     if (!file) { alert("Please choose a PDF file first."); return; }
     try {
-      setStatus("Building Flipkart summary…");
+      const platform = getPlatform();
+      setStatus(`Building ${platform} summary…`);
       const bytes = await file.arrayBuffer();
-      const outBytes = await _buildFlipkartSummary(bytes);
+
+      const outBytes = (platform === "flipkart")
+        ? await _buildFlipkartSummary(bytes)
+        : await _buildAmazonSummary(bytes);
+
       const blob = new Blob([outBytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url; a.download = "summary-flipkart.pdf";
+      a.href = url; a.download = `summary-${platform}.pdf`;
       document.body.appendChild(a); a.click(); a.remove();
       setStatus("Summary ready.");
     } catch (err) {
@@ -391,11 +502,15 @@ if (summaryBtn) {
   });
 }
 
+
 // Also: enable Summary immediately if Flipkart was already selected on load
-(function initSummaryState(){
-  const checked = document.querySelector('input[name="platform"]:checked');
-  if (checked) summaryBtn.disabled = checked.value !== "flipkart";
-})();
+ (function initSummaryState(){
+   const checked = document.querySelector('input[name="platform"]:checked');
+   if (checked) {
+     const v = checked.value;
+     summaryBtn.disabled = !(v === "flipkart" || v === "amazon");
+   }
+ })();
 
 
   // --- Beautiful popup for Meesho ---
