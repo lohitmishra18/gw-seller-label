@@ -58,26 +58,46 @@
 
   // --------- Flipkart hard crop ----------
   function cropFlipkart(canvas) {
-    // (kept exactly as you had it)
-    const W = canvas.width, H = canvas.height;
+  const W = canvas.width, H = canvas.height;
 
-    const leftPct = 0.28, rightPct = 0.28, topPct = 0.02, bottomKeepPct = 0.45;
+  // Crop percentages
+  const leftPct = 0.28, rightPct = 0.28, topPct = 0.02, bottomKeepPct = 0.45;
 
-    const sx = Math.floor(W * leftPct);
-    const ex = Math.floor(W * (1 - rightPct));
-    const sy = Math.floor(H * topPct);
-    const ey = Math.floor(H * bottomKeepPct);
+  const sx = Math.floor(W * leftPct);
+  const ex = Math.floor(W * (1 - rightPct));
+  const sy = Math.floor(H * topPct);
+  const ey = Math.floor(H * bottomKeepPct);
 
-    const sWidth  = Math.max(1, ex - sx);
-    const sHeight = Math.max(1, ey - sy);
+  const sWidth  = Math.max(1, ex - sx);
+  const sHeight = Math.max(1, ey - sy);
 
-    const c = document.createElement("canvas");
-    c.width = sWidth;
-    c.height = sHeight;
-    const ctx = c.getContext("2d");
-    ctx.drawImage(canvas, sx, sy, sWidth, sHeight, 0, 0, sWidth, sHeight);
-    return c.toDataURL("image/png");
+  const c = document.createElement("canvas");
+  c.width = sWidth;
+  c.height = sHeight;
+  const ctx = c.getContext("2d");
+
+  // 🔹 Keep edges sharp for barcodes/text
+  ctx.imageSmoothingEnabled = false;
+
+  // Draw cropped region
+  ctx.drawImage(canvas, sx, sy, sWidth, sHeight, 0, 0, sWidth, sHeight);
+
+  /*
+  // 🔹 Optional: convert to pure black/white for thermal printing
+  const img = ctx.getImageData(0, 0, c.width, c.height);
+  const d = img.data;
+  const threshold = 200; // tweak 180–210 depending on printer
+  for (let i = 0; i < d.length; i += 4) {
+    const y = 0.2126 * d[i] + 0.7152 * d[i+1] + 0.0722 * d[i+2]; // luminance
+    const v = y >= threshold ? 255 : 0;
+    d[i] = d[i+1] = d[i+2] = v; // set RGB
   }
+  ctx.putImageData(img, 0, 0);
+  */
+
+  return c.toDataURL("image/png");
+}
+
 
   // --------- 4x6 builder ----------
   async function build4x6(pdfArrayBuffer, platform) {
@@ -94,7 +114,8 @@
       const i = indices[k];
       setStatus(`Rendering label ${k + 1} of ${indices.length} (${platform})…`);
 
-      const canvas = await renderPageToCanvas(pdf, i, 1200);
+        const targetW = (platform === "flipkart") ? 2400 : 1200;
+        const canvas = await renderPageToCanvas(pdf, i, targetW);
 
       // Platform-specific rendering
       let dataUrl;
@@ -160,7 +181,7 @@ document.addEventListener("change", (e) => {
   }
 });
 
-// Helpers reusing your Flipkart crop box
+// Helpers reusing your Flipkart crop box for summary text extraction
 function _flipkartCropBounds(canvas) {
   const W = canvas.width, H = canvas.height;
   const leftPct = 0.28, rightPct = 0.28, topPct = 0.02, bottomKeepPct = 0.45;
@@ -174,7 +195,7 @@ function _flipkartCropBounds(canvas) {
 }
 
 // Render whole page to canvas (same scale you use for labels)
-async function _renderPageCanvas(pdf, pageIndex, widthTarget = 1200) {
+async function _renderPageCanvas(pdf, pageIndex, widthTarget = 2400) {
   const page = await pdf.getPage(pageIndex + 1);
   const vp1 = page.getViewport({ scale: 1 });
   const scale = widthTarget / vp1.width;
