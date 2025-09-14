@@ -114,7 +114,7 @@
       const i = indices[k];
       setStatus(`Rendering label ${k + 1} of ${indices.length} (${platform})…`);
 
-        const targetW = (platform === "flipkart") ? 2400 : 1200;
+        const targetW = (platform === "flipkart") ? 1800 : 1200;
         const canvas = await renderPageToCanvas(pdf, i, targetW);
 
       // Platform-specific rendering
@@ -195,7 +195,7 @@ function _flipkartCropBounds(canvas) {
 }
 
 // Render whole page to canvas (same scale you use for labels)
-async function _renderPageCanvas(pdf, pageIndex, widthTarget = 2400) {
+async function _renderPageCanvas(pdf, pageIndex, widthTarget = 1800) {
   const page = await pdf.getPage(pageIndex + 1);
   const vp1 = page.getViewport({ scale: 1 });
   const scale = widthTarget / vp1.width;
