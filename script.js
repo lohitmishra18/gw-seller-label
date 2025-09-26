@@ -129,7 +129,7 @@
       setStatus(`Rendering label ${k + 1} of ${indices.length} (${platform})…`);
       let targetW = 1200;
       if (platform === "flipkart") targetW = 1800;
-      if (platform === "meesho") targetW = 1200; // 4x6 at 300dpi
+      if (platform === "meesho") targetW = 1800; // 6x4 at 300dpi
       let dataUrl, imgWidth, imgHeight, pageW, pageH;
       if (platform === "flipkart") {
         const canvas = await renderPageToCanvas(pdf, i, targetW);
@@ -141,35 +141,17 @@
         pageW = 288; pageH = 432;
       } else if (platform === "meesho") {
         const croppedCanvas = await cropMeesho(pdf, i, targetW);
-        // Always fill 4x6 area, rotate if needed
-        let rotate = false;
-        if (croppedCanvas.width > croppedCanvas.height) rotate = true;
-        let finalCanvas = document.createElement("canvas");
-        if (rotate) {
-          finalCanvas.width = croppedCanvas.height;
-          finalCanvas.height = croppedCanvas.width;
-          const fctx = finalCanvas.getContext("2d");
-          fctx.save();
-          fctx.translate(finalCanvas.width / 2, finalCanvas.height / 2);
-          fctx.rotate(-Math.PI / 2);
-          fctx.drawImage(croppedCanvas, -croppedCanvas.width / 2, -croppedCanvas.height / 2);
-          fctx.restore();
-        } else {
-          finalCanvas.width = croppedCanvas.width;
-          finalCanvas.height = croppedCanvas.height;
-          finalCanvas.getContext("2d").drawImage(croppedCanvas, 0, 0);
-        }
-        // Now scale to exactly 1200x1800 (4x6 at 300dpi)
+        // No rotation, always landscape 6x4 (1800x1200)
         const scaleCanvas = document.createElement("canvas");
-        scaleCanvas.width = 1200;
-        scaleCanvas.height = 1800;
+        scaleCanvas.width = 1800;
+        scaleCanvas.height = 1200;
         const sctx = scaleCanvas.getContext("2d");
         sctx.imageSmoothingEnabled = true;
-        sctx.drawImage(finalCanvas, 0, 0, scaleCanvas.width, scaleCanvas.height);
+        sctx.drawImage(croppedCanvas, 0, 0, scaleCanvas.width, scaleCanvas.height);
         dataUrl = scaleCanvas.toDataURL("image/png");
         imgWidth = scaleCanvas.width;
         imgHeight = scaleCanvas.height;
-        pageW = 1200; pageH = 1800;
+        pageW = 1800; pageH = 1200;
       } else {
         const canvas = await renderPageToCanvas(pdf, i, targetW);
         dataUrl = canvas.toDataURL("image/png");
