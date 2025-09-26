@@ -564,4 +564,21 @@
     }
   });
 
+  // Extracts the SKU token that appears inside parentheses in description,
+  // e.g. "... | B0FGDD62P5 ( PROM_900G )" or "( PROM_3600G(2) )".
+  // We ignore ASINs like B0FGDD62P5 and only accept tokens with an underscore.
+  function _amazonExtractSku(text) {
+    // First, try to find SKUs inside parentheses
+    const parenTokens = Array.from(text.matchAll(/\(\s*([A-Za-z0-9_\-()]+)\s*\)/g))
+      .map(m => (m[1] || "").trim());
+    // Accept SKUs with underscore and at least one digit, but not ASINs
+    let sku = parenTokens.find(tok => tok.includes("_") && /\d/.test(tok) && !/^B0[A-Z0-9]{8,}$/i.test(tok));
+    if (sku) return sku;
+    // Fallback: find any token with underscore and digit, not ASIN, anywhere in text
+    const fallback = Array.from(text.matchAll(/\b([A-Za-z0-9_\-]{4,})\b/g))
+      .map(m => m[1])
+      .find(tok => tok.includes("_") && /\d/.test(tok) && !/^B0[A-Z0-9]{8,}$/i.test(tok));
+    return fallback || null;
+  }
+
 })();
