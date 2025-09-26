@@ -78,42 +78,118 @@
     return c.toDataURL("image/png");
   }
 
+  // --------- Meesho crop ----------
+  async function cropMeesho(pdf, pageIndex, targetPixelsWide) {
+    // Render page to high-res canvas (e.g. 1200px wide for 4x6 at 300dpi)
+    const highResW = 1200;
+    const page = await pdf.getPage(pageIndex + 1);
+    const vp1 = page.getViewport({ scale: 1 });
+    const scale = highResW / vp1.width;
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = Math.floor(viewport.width);
+    canvas.height = Math.floor(viewport.height);
+    await page.render({ canvasContext: ctx, viewport }).promise;
+
+    // Find 'Tax Invoice' text position (crop up to just above it)
+    const tc = await page.getTextContent();
+    let taxInvoiceY = null;
+    for (const item of tc.items) {
+      if ((item.str || "").toLowerCase().includes("tax invoice")) {
+        const yPdf = item.transform[5];
+        taxInvoiceY = canvas.height - (yPdf * scale);
+        taxInvoiceY = Math.max(0, taxInvoiceY - 24);
+        break;
+      }
+    }
+    if (taxInvoiceY === null) {
+      taxInvoiceY = Math.floor(canvas.height * 0.6);
+    }
+    const cropHeight = Math.max(1, Math.floor(taxInvoiceY));
+    const c = document.createElement("canvas");
+    c.width = canvas.width;
+    c.height = cropHeight;
+    const cctx = c.getContext("2d");
+    cctx.imageSmoothingEnabled = false;
+    cctx.drawImage(canvas, 0, 0, canvas.width, cropHeight, 0, 0, canvas.width, cropHeight);
+    return c;
+  }
+
   // --------- 4x6 builder ----------
   async function build4x6(pdfArrayBuffer, platform) {
     const pdf = await pdfjsLib.getDocument({ data: pdfArrayBuffer }).promise;
     const out = await PDFLib.PDFDocument.create();
-
     let indices = [...Array(pdf.numPages).keys()];
     if (platform === "amazon") {
       indices = await amazonSelectKeepIndices(pdf);
     }
-
     for (let k = 0; k < indices.length; k++) {
       const i = indices[k];
       setStatus(`Rendering label ${k + 1} of ${indices.length} (${platform})…`);
-
-      const targetW = (platform === "flipkart") ? 1800 : 1200;
-      const canvas = await renderPageToCanvas(pdf, i, targetW);
-
-      let dataUrl;
+      let targetW = 1200;
+      if (platform === "flipkart") targetW = 1800;
+      if (platform === "meesho") targetW = 1200; // 4x6 at 300dpi
+      let dataUrl, imgWidth, imgHeight, pageW, pageH;
       if (platform === "flipkart") {
+        const canvas = await renderPageToCanvas(pdf, i, targetW);
         dataUrl = cropFlipkart(canvas);
+        const img = new window.Image();
+        img.src = dataUrl;
+        imgWidth = canvas.width;
+        imgHeight = canvas.height;
+        pageW = 288; pageH = 432;
+      } else if (platform === "meesho") {
+        const croppedCanvas = await cropMeesho(pdf, i, targetW);
+        // Always fill 4x6 area, rotate if needed
+        let rotate = false;
+        if (croppedCanvas.width > croppedCanvas.height) rotate = true;
+        let finalCanvas = document.createElement("canvas");
+        if (rotate) {
+          finalCanvas.width = croppedCanvas.height;
+          finalCanvas.height = croppedCanvas.width;
+          const fctx = finalCanvas.getContext("2d");
+          fctx.save();
+          fctx.translate(finalCanvas.width / 2, finalCanvas.height / 2);
+          fctx.rotate(-Math.PI / 2);
+          fctx.drawImage(croppedCanvas, -croppedCanvas.width / 2, -croppedCanvas.height / 2);
+          fctx.restore();
+        } else {
+          finalCanvas.width = croppedCanvas.width;
+          finalCanvas.height = croppedCanvas.height;
+          finalCanvas.getContext("2d").drawImage(croppedCanvas, 0, 0);
+        }
+        // Now scale to exactly 1200x1800 (4x6 at 300dpi)
+        const scaleCanvas = document.createElement("canvas");
+        scaleCanvas.width = 1200;
+        scaleCanvas.height = 1800;
+        const sctx = scaleCanvas.getContext("2d");
+        sctx.imageSmoothingEnabled = true;
+        sctx.drawImage(finalCanvas, 0, 0, scaleCanvas.width, scaleCanvas.height);
+        dataUrl = scaleCanvas.toDataURL("image/png");
+        imgWidth = scaleCanvas.width;
+        imgHeight = scaleCanvas.height;
+        pageW = 1200; pageH = 1800;
       } else {
+        const canvas = await renderPageToCanvas(pdf, i, targetW);
         dataUrl = canvas.toDataURL("image/png");
+        imgWidth = canvas.width;
+        imgHeight = canvas.height;
+        pageW = 288; pageH = 432;
       }
-
       const pngBytes = await (await fetch(dataUrl)).arrayBuffer();
       const img = await out.embedPng(pngBytes);
-
-      const [W, H] = PAGE_4x6;
+      let W = pageW, H = pageH;
       const page = out.addPage([W, H]);
-      const s = Math.min(W / img.width, H / img.height);
-      const dw = img.width * s, dh = img.height * s;
-      const x = (W - dw) / 2, y = (H - dh) / 2;
-
-      page.drawImage(img, { x, y, width: dw, height: dh });
+      if (platform === "meesho") {
+        page.drawImage(img, { x: 0, y: 0, width: W, height: H });
+      } else {
+        const s = Math.min(W / img.width, H / img.height);
+        const dw = img.width * s, dh = img.height * s;
+        const x = (W - dw) / 2, y = (H - dh) / 2;
+        page.drawImage(img, { x, y, width: dw, height: dh });
+      }
     }
-
     setStatus("Packaging PDF…");
     return out.save();
   }
