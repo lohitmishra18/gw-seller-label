@@ -5,6 +5,7 @@
   const $ = (s) => document.querySelector(s);
   const statusEl = $("#status");
   const dl = $("#download");
+  const summaryBtn = document.getElementById("summary-btn");
 
   function setStatus(t) { statusEl.textContent = t || ""; }
   function getPlatform() {
@@ -118,26 +119,25 @@
   }
 
   // --------- UI ----------
-  $("#process").addEventListener("click", async () => {
+  // Remove Process Labels button logic entirely
+  // (No reference to $("#process") anymore)
+
+  // Update Download Labels click handler to open PDF in new tab
+  dl.addEventListener("click", async (e) => {
+    e.preventDefault();
     const file = $("#file").files[0];
     if (!file) { alert("Please choose a PDF file."); return; }
-
     dl.classList.add("hidden");
     dl.removeAttribute("href");
-    setStatus("Reading file…");
-
+    setStatus("Processing…");
     try {
       const bytes = await file.arrayBuffer();
       const platform = getPlatform();
-
       const outBytes = await build4x6(bytes, platform);
       const blob = new Blob([outBytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
-
-      dl.href = url;
-      dl.download = `labels-4x6-${platform}.pdf`;
-      dl.classList.remove("hidden");
-      setStatus("Done. Click Download.");
+      window.open(url, "_blank");
+      setStatus("Done. Labels opened in new tab.");
     } catch (e) {
       console.error(e);
       setStatus("Error: " + (e?.message || e));
@@ -146,23 +146,240 @@
   });
 
   // ===== Summary button =====
-  const summaryBtn = document.getElementById("summary-btn");
+  // Helper to enable/disable Download Summary button
+  function updateSummaryBtnState() {
+    const file = $("#file").files[0];
+    const platform = getPlatform();
+    summaryBtn.disabled = !(file && (platform === "flipkart" || platform === "amazon" || platform === "meesho"));
+  }
 
+  // Enable/disable Download Summary when file is selected
+  $("#file").addEventListener("change", updateSummaryBtnState);
+
+  // Enable/disable Download Summary when platform changes
   document.addEventListener("change", (e) => {
     if (e.target && e.target.matches('input[name="platform"]')) {
-      const v = e.target.value;
-      summaryBtn.disabled = !(v === "flipkart" || v === "amazon" || v === "meesho");
+      updateSummaryBtnState();
     }
   });
 
+  // On page load, set correct state
+  updateSummaryBtnState();
+
   // --------- Flipkart summary helpers ---------
   async function _buildFlipkartSummary(bytes) {
-    // (existing Flipkart summary logic here… omitted for brevity in this answer)
-    // Keep your working version unchanged
+    const src = await pdfjsLib.getDocument({ data: bytes }).promise;
+    // ---- Tally by (SKU, QTY) pair ----
+    // key: `${sku}||${qty}` -> orders count
+    const tallies = new Map();
+    for (let i = 0; i < src.numPages; i++) {
+      // Use the same text extraction logic as before
+      const { page, canvas, scale } = await (async function _renderPageCanvas(pdf, pageIndex, widthTarget = 2400) {
+        const page = await pdf.getPage(pageIndex + 1);
+        const vp1 = page.getViewport({ scale: 1 });
+        const scale = widthTarget / vp1.width;
+        const viewport = page.getViewport({ scale });
+        const c = document.createElement("canvas");
+        const ctx = c.getContext("2d");
+        c.width = Math.floor(viewport.width);
+        c.height = Math.floor(viewport.height);
+        await page.render({ canvasContext: ctx, viewport }).promise;
+        return { page, canvas: c, scale };
+      })(src, i, 1200);
+      const bounds = (function _flipkartCropBounds(canvas) {
+        const W = canvas.width, H = canvas.height;
+        const leftPct = 0.28, rightPct = 0.28, topPct = 0.02, bottomKeepPct = 0.45;
+        return {
+          x0: Math.floor(W * leftPct),
+          x1: Math.floor(W * (1 - rightPct)),
+          y0: Math.floor(H * topPct),
+          y1: Math.floor(H * bottomKeepPct),
+          W, H
+        };
+      })(canvas);
+      const tc = await page.getTextContent();
+      const items = tc.items || [];
+      const picked = [];
+      for (const it of items) {
+        const tr = it.transform;
+        if (!tr) continue;
+        const xPdf = tr[4], yPdf = tr[5];
+        const x = xPdf * scale;
+        const yTop = canvas.height - (yPdf * scale);
+        if (x >= bounds.x0 && x <= bounds.x1 && yTop >= bounds.y0 && yTop <= bounds.y1) {
+          picked.push({ text: (it.str || "").trim(), x, yTop });
+        }
+      }
+      // Heuristics to extract SKU and QTY from the cropped text region
+      // ... (same as your previous _extractSkuQty logic) ...
+      // Group items by approximate line (bucket by 6px)
+      const lines = new Map();
+      for (const it of picked) {
+        const key = Math.round(it.yTop / 6) * 6;
+        if (!lines.has(key)) lines.set(key, []);
+        lines.get(key).push(it);
+      }
+      let skuHeaderY = null, qtyHeaderY = null;
+      for (const [y, arr] of lines) {
+        const lineText = arr.map(a => a.text).join(" ");
+        if (/\bSKU\s*ID\b/i.test(lineText) || /\bSKU\b/i.test(lineText)) skuHeaderY = y;
+        if (/\bQTY\b/i.test(lineText)) qtyHeaderY = y;
+      }
+      const hasDigit = s => /\d/.test(s);
+      const GOOD_TOKEN = /^[A-Z0-9_-]{3,20}$/;
+      const STOP = new Set([
+        "SKU","ID","DESCRIPTION","QTY","REG","AWB","COD","SURFACE",
+        "ORDERED","THROUGH","FLIPKART","NOT","FOR","RESALE","HBD","CPD",
+        "DELIGHTA","GREEN","PRIVATE","LIMITED","THEGREENWEALTH","SEAWEED",
+        "EXTRACT","GRANULES","FERTILIZER","PLANTS"
+      ]);
+      let candidates = [];
+      for (const [y, arr] of lines) {
+        if (skuHeaderY !== null && (y >= skuHeaderY) && (y <= skuHeaderY + 150)) {
+          for (const a of arr) {
+            const tok = (a.text || "").trim().toUpperCase();
+            if (GOOD_TOKEN.test(tok) && hasDigit(tok) && !STOP.has(tok)) {
+              candidates.push({ tok, y, x: a.x });
+            }
+          }
+        }
+      }
+      let sku = null;
+      if (candidates.length) {
+        candidates.sort((a, b) => a.y - b.y || a.x - b.x);
+        sku = candidates[0].tok;
+      } else {
+        for (const it of picked) {
+          const tok = (it.text || "").trim().toUpperCase();
+          if (GOOD_TOKEN.test(tok) && hasDigit(tok) && !STOP.has(tok)) { sku = tok; break; }
+        }
+      }
+      let qty = 1;
+      if (qtyHeaderY !== null) {
+        const nums = (lines.get(qtyHeaderY) || [])
+          .map(a => a.text.match(/^\d+$/))
+          .filter(Boolean)
+          .map(m => parseInt(m[0], 10))
+          .filter(Number.isFinite);
+        if (nums.length) qty = nums[0];
+      } else if (skuHeaderY !== null) {
+        outer: for (const [y, arr] of lines) {
+          if (y >= skuHeaderY && y <= skuHeaderY + 120) {
+            for (const a of arr) {
+              const m = a.text.match(/^\d+$/);
+              if (m) { qty = parseInt(m[0], 10); break outer; }
+            }
+          }
+        }
+      }
+      if (!sku) continue;
+      const q = Number.isFinite(qty) ? qty : 1;
+      const key = `${sku}||${q}`;
+      tallies.set(key, (tallies.get(key) || 0) + 1);
+    }
+    const rows = Array.from(tallies.entries()).map(([key, orders]) => {
+      const [sku, qtyStr] = key.split("||");
+      const qty = parseInt(qtyStr, 10);
+      return { sku, qty, orders };
+    });
+    const totalOrders = rows.reduce((s, r) => s + r.orders, 0);
+    const out = await PDFLib.PDFDocument.create();
+    const page = out.addPage([595.28, 841.89]); // A4
+    const font = await out.embedFont(PDFLib.StandardFonts.Helvetica);
+    const bold = await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
+    let y = 800;
+    page.drawText("Via Green Wealth", { x: 40, y, size: 22, font: bold });
+    y -= 28;
+    page.drawText(`Total Orders: ${totalOrders}`, { x: 40, y, size: 14, font: bold });
+    y -= 22;
+    const colX = [40, 260, 320];
+    const colW = [220, 60, 60];
+    const rowH = 18;
+    function cell(text, x, y, w, alignRight=false, isBold=false){
+      page.drawRectangle({ x, y: y-rowH+4, width: w, height: rowH, borderColor: PDFLib.rgb(0,0,0), borderWidth: 1 });
+      const f = isBold ? bold : font;
+      const s = 12;
+      const str = String(text);
+      const tw = f.widthOfTextAtSize(str, s);
+      const tx = alignRight ? x + w - tw - 6 : x + 6;
+      page.drawText(str, { x: tx, y: y - rowH + 8, size: s, font: f });
+    }
+    cell("sku",    colX[0], y, colW[0], false, true);
+    cell("qty",    colX[1], y, colW[1], true,  true);
+    cell("orders", colX[2], y, colW[2], true,  true);
+    y -= rowH;
+    rows.sort((a, b) => a.sku.localeCompare(b.sku) || a.qty - b.qty);
+    for (const r of rows) {
+      if (y < 80) { y = 760; out.addPage([595.28, 841.89]); }
+      cell(r.sku,    colX[0], y, colW[0]);
+      cell(r.qty,    colX[1], y, colW[1], true);
+      cell(r.orders, colX[2], y, colW[2], true);
+      y -= rowH;
+    }
+    return out.save();
   }
 
   async function _buildAmazonSummary(bytes) {
-    // (your Amazon summary logic stays here)
+    const src = await pdfjsLib.getDocument({ data: bytes }).promise;
+    const tallies = new Map();
+    for (let i = 0; i < src.numPages; i++) {
+      const page = await src.getPage(i + 1);
+      const tc = await page.getTextContent();
+      const text = (tc.items || []).map(x => (x.str || "")).join(" ");
+      // Extract SKU
+      const parenTokens = Array.from(text.matchAll(/\(\s*([A-Z0-9_]+(?:\(\d+\))?)\s*\)/g)).map(m => (m[1] || "").trim().toUpperCase());
+      const sku = parenTokens.find(tok => tok.includes("_") && !/^B0[A-Z0-9]{8,}$/i.test(tok));
+      if (!sku) continue;
+      // Extract QTY
+      let qty = 1;
+      const m1 = text.match(/\bQty\s+(\d+)\b/i);
+      if (m1) qty = parseInt(m1[1], 10);
+      else {
+        const m2 = text.match(/₹[\d,]+(?:\.\d{1,2})?\s+(\d+)\s+₹/);
+        if (m2) qty = parseInt(m2[1], 10);
+      }
+      const key = `${sku}||${qty}`;
+      tallies.set(key, (tallies.get(key) || 0) + 1);
+    }
+    const rows = Array.from(tallies.entries()).map(([key, orders]) => {
+      const [sku, qtyStr] = key.split("||");
+      return { sku, qty: parseInt(qtyStr, 10), orders };
+    });
+    const totalOrders = rows.reduce((s, r) => s + r.orders, 0);
+    const out = await PDFLib.PDFDocument.create();
+    const page = out.addPage([595.28, 841.89]); // A4
+    const font = await out.embedFont(PDFLib.StandardFonts.Helvetica);
+    const bold = await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
+    let y = 800;
+    page.drawText("Via Green Wealth — Amazon", { x: 40, y, size: 22, font: bold });
+    y -= 28;
+    page.drawText(`Total Orders: ${totalOrders}`, { x: 40, y, size: 14, font: bold });
+    y -= 22;
+    const colX = [40, 260, 320];
+    const colW = [220, 60, 60];
+    const rowH = 18;
+    function cell(text, x, y, w, alignRight=false, isBold=false){
+      page.drawRectangle({ x, y: y-rowH+4, width: w, height: rowH, borderColor: PDFLib.rgb(0,0,0), borderWidth: 1 });
+      const f = isBold ? bold : font;
+      const s = 12;
+      const str = String(text);
+      const tw = f.widthOfTextAtSize(str, s);
+      const tx = alignRight ? x + w - tw - 6 : x + 6;
+      page.drawText(str, { x: tx, y: y - rowH + 8, size: s, font: f });
+    }
+    cell("sku",    colX[0], y, colW[0], false, true);
+    cell("qty",    colX[1], y, colW[1], true,  true);
+    cell("orders", colX[2], y, colW[2], true,  true);
+    y -= rowH;
+    rows.sort((a, b) => a.sku.localeCompare(b.sku) || a.qty - b.qty);
+    for (const r of rows) {
+      if (y < 80) { y = 760; out.addPage([595.28, 841.89]); }
+      cell(r.sku,    colX[0], y, colW[0]);
+      cell(r.qty,    colX[1], y, colW[1], true);
+      cell(r.orders, colX[2], y, colW[2], true);
+      y -= rowH;
+    }
+    return out.save();
   }
 
   // --------- Meesho summary ---------
@@ -250,12 +467,10 @@
   summaryBtn.addEventListener("click", async () => {
     const file = $("#file").files[0];
     if (!file) { alert("Please choose a PDF file."); return; }
-    setStatus("Reading file for summary…");
-
+    setStatus("Processing…");
     try {
       const bytes = await file.arrayBuffer();
       const platform = getPlatform();
-
       let outBytes;
       if (platform === "flipkart") {
         outBytes = await _buildFlipkartSummary(bytes);
@@ -267,13 +482,10 @@
         alert("Summary not supported.");
         return;
       }
-
       const blob = new Blob([outBytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
-      dl.href = url;
-      dl.download = `summary-${platform}.pdf`;
-      dl.classList.remove("hidden");
-      setStatus("Summary ready. Click Download.");
+      window.open(url, "_blank");
+      setStatus("Done. Summary opened in new tab.");
     } catch (e) {
       console.error(e);
       setStatus("Error: " + (e?.message || e));

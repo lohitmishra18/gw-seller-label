@@ -203,6 +203,10 @@ small { color: #6a8b77; }
   justify-content: center;
   gap: 12px;
 }
+.button-row a,
+.button-row button {
+  cursor: pointer;
+}
 
 /* Download & Summary */
 #download,
