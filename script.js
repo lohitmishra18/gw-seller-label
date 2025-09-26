@@ -283,20 +283,28 @@
         if (/\bSKU\s*ID\b/i.test(lineText) || /\bSKU\b/i.test(lineText)) skuHeaderY = y;
         if (/\bQTY\b/i.test(lineText)) qtyHeaderY = y;
       }
+      // Allow SKUs with underscores, numbers, letters, parentheses, and at least one digit
       const hasDigit = s => /\d/.test(s);
-      const GOOD_TOKEN = /^[A-Z0-9_-]{3,20}$/;
+      const GOOD_TOKEN = /^[A-Za-z0-9_\-()]{3,30}$/;
       const STOP = new Set([
         "SKU","ID","DESCRIPTION","QTY","REG","AWB","COD","SURFACE",
         "ORDERED","THROUGH","FLIPKART","NOT","FOR","RESALE","HBD","CPD",
         "DELIGHTA","GREEN","PRIVATE","LIMITED","THEGREENWEALTH","SEAWEED",
         "EXTRACT","GRANULES","FERTILIZER","PLANTS"
       ]);
+      // Exclude tracking IDs (e.g. SF2171888115FPL)
+      const TRACKING_ID = /^[A-Z]{2,}\d{6,}/;
       let candidates = [];
       for (const [y, arr] of lines) {
         if (skuHeaderY !== null && (y >= skuHeaderY) && (y <= skuHeaderY + 150)) {
           for (const a of arr) {
-            const tok = (a.text || "").trim().toUpperCase();
-            if (GOOD_TOKEN.test(tok) && hasDigit(tok) && !STOP.has(tok)) {
+            const tok = (a.text || "").trim();
+            if (
+              GOOD_TOKEN.test(tok) &&
+              hasDigit(tok) &&
+              !STOP.has(tok.toUpperCase()) &&
+              !TRACKING_ID.test(tok)
+            ) {
               candidates.push({ tok, y, x: a.x });
             }
           }
@@ -308,8 +316,13 @@
         sku = candidates[0].tok;
       } else {
         for (const it of picked) {
-          const tok = (it.text || "").trim().toUpperCase();
-          if (GOOD_TOKEN.test(tok) && hasDigit(tok) && !STOP.has(tok)) { sku = tok; break; }
+          const tok = (it.text || "").trim();
+          if (
+            GOOD_TOKEN.test(tok) &&
+            hasDigit(tok) &&
+            !STOP.has(tok.toUpperCase()) &&
+            !TRACKING_ID.test(tok)
+          ) { sku = tok; break; }
         }
       }
       let qty = 1;
