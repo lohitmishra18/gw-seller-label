@@ -1,352 +1,258 @@
 /* ===============================
-   Green Wealth Label Tool — Styles (cleaned)
+   The Green Wealth — Label Tool
+   Full stylesheet (light mock-up look)
    =============================== */
 
-/* -------- Theme tokens -------- */
-:root {
-  /* Colors */
-  --text: #0f2e1f;            /* deep leaf */
-  --muted: #3b5c48;           /* soft leaf text */
-  --brand: #166534;           /* primary green (dark) */
-  --brand-2: #22c55e;         /* accent green (bright) */
-  --logo-green: #A3BC38;      /* matches logo "Green" */
-  --logo-green-d: #8EAC2F;    /* darker for hover/border */
-
-  /* Layout */
-  --radius: 20px;
-  --shadow: 0 16px 40px rgba(0, 0, 0, .15);
-  --ring: rgba(34, 197, 94, .28); /* focus glow */
+/* Theme tokens */
+:root{
+  --text:#0f2e1f;
+  --muted:#3b5c48;
+  --brand:#166534;
+  --accent:#22c55e;
+  --pill:#A3BC38;
+  --pill-d:#8EAC2F;
+  --radius:18px;
+  --shadow:0 6px 18px rgba(0,0,0,.08);
 }
 
-/* Global reset */
-* { box-sizing: border-box; }
-html, body { height: 100%; }
+/* Basic reset */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  display:grid;
+  place-items:center;
+  padding:28px 18px 40px;
+  font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  color:var(--text);
 
-/* -------- Background + base -------- */
-body {
-  margin: 0;
-  display: grid;
-  place-items: center;
-  padding: 28px;
-  font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  color: var(--text);
+  /* Background: make leaves clearly visible */
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, .75), rgba(255, 255, 255, .85)),
-    url("gw_background.jpg") center / cover no-repeat fixed;
+    linear-gradient(180deg, rgba(255,255,255,.15), rgba(255,255,255,.35)),
+    url("gw_background.jpg") center/cover no-repeat fixed;
 }
 
-/* -------- Card (glass) -------- */
-.card {
-  position: relative;
-  width: min(980px, 92vw);
-  padding: 34px 38px 40px;
-  border: 1px solid rgba(255, 255, 255, .35);
-  border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(10px) saturate(140%);
-  -webkit-backdrop-filter: blur(10px) saturate(140%);
-}
-.card::after {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  padding: 1px;
-  border-radius: calc(var(--radius) + 1px);
-  pointer-events: none;
-  opacity: .6;
-  background: linear-gradient(180deg, rgba(34, 197, 94, .18), rgba(22, 101, 52, .14));
-  mask: linear-gradient(#000, #000) content-box, linear-gradient(#000, #000);
-  -webkit-mask: linear-gradient(#000, #000) content-box, linear-gradient(#000, #000);
+/* Top info bar */
+.top-marquee{
+  background:#10b981;
+  color:#fff;
+  padding:6px 0;
+  font-size:14px;
+  position:fixed; top:0; left:0; right:0;
+  z-index:10;
 }
 
-/* -------- Header -------- */
-.card h1,
-.card p {
-  width: 100%;
-  text-align: center;
+/* Main card */
+.card{
+  width:min(980px,94vw);
+  margin-top:36px;
+  padding:28px 28px 34px;
+  border:1px solid rgba(0,0,0,.06);
+  border-radius:22px;
+  background:#ffffff;                /* solid white like mock-up */
+  box-shadow:var(--shadow);
 }
 
-h1 {
-  margin: 0 0 8px;
-  font-size: clamp(28px, 3.2vw, 40px);
-  letter-spacing: .2px;
+/* Header */
+.header{
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+  margin-bottom:10px;
 }
-p {
-  margin: 0 0 26px;
-  color: var(--muted);
+.logo{height:80px; width:auto; object-fit:contain}
+.title{
+  margin:6px 0 0;
+  font-size:clamp(26px,3.2vw,34px);
+  font-weight:800;
+  letter-spacing:.2px;
+  text-align:center;
 }
-
-/* Header area for the logo */
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 60px;
-  margin: 8px 0;
-}
-
-/* Logo sizing (you set 200px height) */
-.logo {
-  display: block;
-  height: 200px;
-  width: auto;
-  max-width: min(360px, 60vw);
-  margin: 0 auto;
-  object-fit: contain;
+.subtitle{
+  margin:2px 0 18px;
+  color:#6a8b77;
+  text-align:center;
 }
 
-/* -------- Controls -------- */
-.controls {
-  display: grid;
-  grid-template-columns: 1fr;
-  justify-items: center;
-  gap: 14px;
+/* Controls container */
+.controls{display:grid; grid-template-columns:1fr; gap:18px}
+
+/* Hide real file input; label acts as dropzone */
+#file{
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0 0 0 0); border:0; white-space:nowrap; clip-path:inset(50%);
 }
 
-/* File input */
-input[type="file"] {
-  width: min(520px, 90%);
-  padding: 12px 14px;
-  border: 1px solid #dfe7e2;
-  border-radius: 12px;
-  background: #fff;
-  outline: none;
-  transition: box-shadow .15s ease, border-color .15s ease;
+/* Dropzone */
+.dropzone{
+  display:grid; place-items:center; text-align:center;
+  width:100%; height:240px;
+  border:2px dashed #b7cbbf;                 /* subtle green dashed */
+  border-radius:16px;
+  background:#ffffff;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.02);
+  cursor:pointer;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
 }
-input[type="file"]:focus {
-  border-color: var(--brand-2);
-  box-shadow: 0 0 0 6px var(--ring);
+.dropzone:hover{
+  transform:translateY(-1px);
+  border-color:#99b3a4;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.04), 0 6px 16px rgba(2,6,23,.08);
 }
-
-/* -------- Radios as segmented control -------- */
-.modes {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-/* Make 'Marketplace:' readable on lighter/transparent card */
-.modes strong {
-  margin-right: 8px;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, .35);
+/* ---- Upload icon like the mockup (outline arrow + tray) ---- */
+.dz-icon{
+  width:48px;
+  height:48px;
+  margin:8px auto 12px;
+  color:#6b7280;                     /* icon stroke color */
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:100% 100%;
+  /* Inline SVG so you don't need any extra files */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v10'/%3E%3Cpath d='M8 7l4-4 4 4'/%3E%3Cpath d='M4 21h16a2 2 0 0 0 2-2v-3'/%3E%3Cpath d='M2 16v3a2 2 0 0 0 2 2'/%3E%3C/svg%3E");
 }
 
-/* Radio "pills" matching logo green */
-.modes label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  border: 1px solid var(--logo-green-d);
-  border-radius: 999px;
-  background: var(--logo-green);
-  color: #0f2e1f;
-  user-select: none;
-  cursor: pointer;
-  font-weight: 600;
-  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+/* Optional: tighten the texts below the icon to match the feel */
+.dz-title{
+  font-weight:700;
+  color:#0f2e1f;
+  margin-top:2px;
 }
-.modes label:hover {
-  transform: translateY(-1px);
-  background: var(--logo-green-d);
-  box-shadow: 0 6px 16px rgba(2, 6, 23, .14);
-}
-.modes input[type="radio"] {
-  accent-color: var(--brand);
+.dz-hint{
+  color:#8b9bb0;                     /* soft gray-blue like the mockup */
+  font-size:14px;
 }
 
-/* Hint text */
-small { color: #6a8b77; }
+/* .dz-title{font-weight:700}
+.dz-hint{color:#6b7280; font-size:14px; margin-top:2px} */
 
-/* -------- Buttons -------- */
+/* Marketplaces (segmented pills) */
+/* === Marketplaces panel (matches mockup) === */
+.modes{
+  /* box like the mockup */
+  background:#fff;
+  border:1px solid rgba(0,0,0,.08);
+  border-radius:16px;
+  box-shadow:0 4px 14px rgba(0,0,0,.06);
+  padding:16px;
 
-/* Primary CTA */
-#process {
-  padding: 14px 26px;
-  border: none;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--logo-green), var(--logo-green-d));
-  color: #fff;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow:
-    0 8px 18px rgba(22, 101, 52, .35),
-    0 4px 10px rgba(34, 197, 94, .25);
-  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
-}
-#process:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    0 12px 24px rgba(22, 101, 52, .45),
-    0 6px 16px rgba(34, 197, 94, .35);
-}
-#process:active {
-  transform: translateY(0);
-  box-shadow: 0 6px 14px rgba(22, 101, 52, .35);
-}
-#process:disabled {
-  background: linear-gradient(135deg, #9ca3af, #6b7280);
-  box-shadow: none;
-  cursor: not-allowed;
+  /* layout: title on top, 3 equal buttons below */
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:12px;
+  align-items:center;
 }
 
-/* Secondary actions row */
-.button-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-}
-.button-row a,
-.button-row button {
-  cursor: pointer;
+.modes strong{
+  grid-column:1 / -1;             /* title spans full width */
+  margin:0 2px 2px;
+  font-weight:800;
+  color:var(--text);
 }
 
-/* Download & Summary */
-#download,
-#summary-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 170px;
-  padding: 12px 18px;
-  border: 1px solid rgba(16, 94, 52, .18);
-  border-radius: 12px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, .96), rgba(246, 252, 248, .96));
-  color: var(--text);
-  font-weight: 600;
-  text-decoration: none;
-  box-shadow: 0 8px 18px rgba(2, 6, 23, .10);
-  transition:
-    transform .15s ease,
-    box-shadow .15s ease,
-    border-color .15s ease,
-    background .15s ease;
-}
-#download:hover,
-#summary-btn:hover {
-  transform: translateY(-1px);
-  border-color: rgba(16, 94, 52, .28);
-  box-shadow: 0 12px 26px rgba(2, 6, 23, .14);
-}
-#summary-btn:disabled {
-  opacity: .45;
-  box-shadow: none;
-  transform: none;
-  cursor: not-allowed;
+/* equal-size buttons */
+.pill{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  width:100%;
+  padding:12px 18px;
+  border-radius:999px;
+  border:1.5px solid #a3c46a;      /* leafy green outline */
+  background:#ffffff;              /* unselected = white */
+  color:#0f2e1f;
+  font-weight:800;
+  cursor:pointer;
+  transition:transform .15s ease, box-shadow .15s ease, background .15s ease, color .15s ease, border-color .15s ease;
 }
 
-/* Status line */
-.status {
-  min-height: 22px;
-  margin-top: 14px;
-  font-size: 14px;
-  color: #5d7a69;
+/* hide the native radio but keep it accessible */
+.pill input[type="radio"]{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  pointer-events:none;
 }
 
-/* -------- Popup modal (Meesho) -------- */
-.popup-overlay {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, .55);
-  z-index: 999;
+/* selected state — solid green like mockup */
+.pill:has(input:checked){
+  background:linear-gradient(180deg,#4ade80,#22c55e);
+  border-color:#22c55e;
+  color:#fff;
+  box-shadow:0 6px 16px rgba(34,197,94,.20);
 }
-.popup-overlay.hidden { display: none; }
+.pill:has(input:checked) .pill-text{ color:#fff; }
 
-.popup-card {
-  max-width: 340px;
-  padding: 24px 28px;
-  border-radius: 14px;
-  background: #fff;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, .25);
-  text-align: center;
-  animation: fadeInUp .22s ease;
-}
-.popup-card h2 {
-  margin: 0 0 8px;
-  font-size: 20px;
-  color: #0f2e1f;
-}
-.popup-card p {
-  margin: 0 0 18px;
-  color: #3b5c48;
-}
-.popup-card button {
-  padding: 10px 18px;
-  border: 0;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #16a34a, #166534);
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-  transition: filter .18s ease;
-}
-.popup-card button:hover { filter: brightness(1.05); }
+/* hover feel */
+.pill:hover{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(2,6,23,.12) }
 
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+/* responsive: stack buttons on small screens */
+@media (max-width:560px){
+  .modes{ grid-template-columns:1fr; }
 }
 
-/* -------- Small screens -------- */
-@media (max-width: 520px) {
-  .button-row { flex-direction: column; }
-  #download, #summary-btn { min-width: 100%; }
+
+/* Buttons row */
+.button-row{
+  display:flex; align-items:center; justify-content:center;
+  gap:12px; margin-top:8px;
 }
 
-/* -------- Optional Dark Mode -------- */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #e6f4ec;
-    --muted: #0c110e;
-  }
-
-  body {
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, .45), rgba(255, 255, 255, .65)),
-      url("gw_background.jpg") center top / cover no-repeat fixed;
-  }
-
-  .card {
-    background: rgba(16, 24, 20, 0);
-    border-color: rgba(255, 255, 255, .12);
-  }
-
-  /* Keep radio pills green in dark mode as well */
-  .modes strong { color: #1a934e; }
-  .modes label {
-    background: var(--logo-green);
-    border-color: var(--logo-green-d);
-    color: #0f2e1f;
-  }
-
-  input[type="file"] {
-    background: #0f1a14;
-    border-color: #1f2e26;
-    color: #e6f4ec;
-  }
-
-  #download,
-  #summary-btn {
-    border-color: #213328;
-    background: linear-gradient(180deg, rgba(18, 28, 22, .95), rgba(14, 22, 18, .95));
-    color: #e6f4ec;
-  }
-
-  #download:hover,
-  #summary-btn:hover { border-color: #2b4336; }
+/* Primary: Download Labels */
+#download{
+  display:inline-flex !important;
+  align-items:center; justify-content:center;
+  min-width:220px; padding:14px 18px;
+  border-radius:12px; border:1px solid rgba(16,94,52,.18);
+  background:linear-gradient(180deg, #4ade80, #22c55e);
+  color:#fff; font-weight:800; text-decoration:none;
+  box-shadow:0 4px 10px rgba(2,6,23,.12);
+  transition:transform .15s ease, box-shadow .15s ease, filter .15s ease;
+}
+#download:hover{
+  transform:translateY(-1px);
+  box-shadow:0 8px 16px rgba(2,6,23,.18);
+  filter:saturate(1.05);
 }
 
-/* -------- Reduced motion -------- */
-@media (prefers-reduced-motion: reduce) {
-  * { animation: none !important; transition: none !important; }
+/* Secondary: Download Summary */
+#summary-btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width:220px; padding:14px 18px;
+  border-radius:12px;
+  background:#f1f5f9;
+  color:#64748b; font-weight:700;
+  border:1px solid rgba(0,0,0,.06);
+}
+#summary-btn:disabled{opacity:.55; cursor:not-allowed}
+
+/* Utility */
+.hidden{display:none !important}
+.status{min-height:22px; margin-top:6px; font-size:14px; color:#5d7a69; text-align:center}
+
+/* Modal (IDs unchanged) */
+.popup-overlay{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.55); z-index:999}
+.popup-overlay.hidden{display:none}
+.popup-card{
+  max-width:360px; padding:24px 28px; border-radius:14px; background:#fff;
+  box-shadow:0 10px 40px rgba(0,0,0,.25); text-align:center; animation:fadeInUp .22s ease
+}
+.popup-card h2{margin:0 0 8px; font-size:20px; color:#0f2e1f}
+.popup-card p{margin:0 0 18px; color:#3b5c48}
+.popup-card button{
+  padding:10px 18px; border:0; border-radius:8px;
+  background:linear-gradient(135deg,#16a34a,#166534);
+  color:#fff; font-weight:700; cursor:pointer; transition:filter .18s ease
+}
+.popup-card button:hover{filter:brightness(1.05)}
+@keyframes fadeInUp{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:translateY(0)}}
+
+/* Responsive */
+@media (max-width:560px){
+  .logo{height:64px}
+  .title{font-size:24px}
+  .dropzone{height:210px}
+  .button-row{flex-direction:column}
+  #download,#summary-btn{min-width:100%}
 }

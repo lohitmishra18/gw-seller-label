@@ -1,76 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>The Green Wealth Label Tool</title>
-    <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>The Green Wealth Label Tool</title>
+  <link rel="stylesheet" href="style.css" />
 
-    <!-- PDF.js -->
-    <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc =
-            "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
-    </script>
+  <!-- PDF.js -->
+  <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+  </script>
 
-    <!-- pdf-lib -->
-    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="alternate icon" href="favicon.png" type="image/png"> <!-- optional PNG fallback -->
+  <!-- pdf-lib -->
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="alternate icon" href="favicon.png" type="image/png">
 </head>
 
 <body>
-    <!-- <marquee behavior="scroll" direction="left" scrollamount="5" style="background:#10b981; color:white; padding:4px 0; font-size:14px;">
-    🚀 New: Meesho labels support is coming soon! Stay tuned for updates. 🚀
-</marquee>
-<br> -->
-<marquee behavior="scroll" direction="left" scrollamount="5" style="background:#10b981; color:white; padding:4px 0; font-size:14px;">
+  <marquee behavior="scroll" direction="left" scrollamount="5" class="top-marquee">
     🌟 Everything is Working 🌟
-</marquee>
+  </marquee>
 
-    <div class="card">
-        <div class="header">
-            <img src="gw_logo.png" alt="Green Wealth Logo" class="logo">
-        </div>
-        <p>Upload your label PDF. Everything runs 100% in your browser.</p>
-
-        <div class="controls">
-            <input type="file" id="file" accept="application/pdf" />
-
-            <div class="modes" id="marketplaces">
-                <strong style="margin-right:8px;">Marketplace:</strong>
-                <label><input type="radio" name="platform" value="amazon" checked /> Amazon</label>
-                <label><input type="radio" name="platform" value="flipkart" /> Flipkart</label>
-                <label><input type="radio" name="platform" value="meesho" /> Meesho</label>
-            </div>
-
-            <small style="color:#64748b;">Output size: <b>4×6</b> (default)</small>
-
-            <div class="button-row">
-                <a id="download" class="hidden">⬇ Download Labels</a>
-                <button id="summary-btn" disabled>Download Summary</button>
-            </div>
-
-        </div>
-
-
-        <div id="status" class="status"></div>
+  <div class="card">
+    <div class="header">
+      <img src="gw_logo.png" alt="Green Wealth Logo" class="logo">
+      <h1 class="title">Label Generator</h1>
+      <p class="subtitle">Upload your label PDF. Everything runs 100% in your browser.</p>
     </div>
 
-    <!-- Beautiful Popup Modal -->
-    <div id="popup-overlay" class="popup-overlay hidden">
-        <div class="popup-card">
-            <h2>🚀 Feature is coming</h2>
-            <p>Meesho labels support will be available soon!</p>
-            <button id="popup-close">OK</button>
-        </div>
-    </div>
+    <div class="controls">
+      <!-- Pretty dropzone that still uses the SAME #file input -->
+      <input type="file" id="file" accept="application/pdf" />
+      <label for="file" class="dropzone" aria-label="Upload your label PDF">
+        <div class="dz-icon" aria-hidden="true">⬆</div>
+        <div class="dz-title">Upload your label PDF</div>
+        <div class="dz-hint">Drag & drop your PDF here, or click to browse</div>
+      </label>
 
-    <script src="script.js"></script>
+      <div class="modes" id="marketplaces">
+        <strong>Select Marketplaces</strong>
+        <label class="pill"><input type="radio" name="platform" value="amazon" checked /> <span class="pill-text">Amazon</span></label>
+        <label class="pill"><input type="radio" name="platform" value="flipkart" /> <span class="pill-text">Flipkart</span></label>
+        <label class="pill"><input type="radio" name="platform" value="meesho" /> <span class="pill-text">Meesho</span></label>
+      </div>
+
+      
+
+        <div class="button-row">
+            <a id="download">⬇ Download Labels</a>
+            <button id="summary-btn" disabled>Download Summary</button>
+        </div>
+
+      <div id="status" class="status"></div>
+    </div>
+  </div>
+
+  <!-- Modal kept as-is (IDs unchanged) -->
+  <div id="popup-overlay" class="popup-overlay hidden">
+    <div class="popup-card">
+      <h2>🚀 Feature is coming</h2>
+      <p>Meesho labels support will be available soon!</p>
+      <button id="popup-close">OK</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
-
 </html>
