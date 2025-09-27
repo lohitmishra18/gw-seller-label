@@ -941,4 +941,54 @@
       }
     }); // end legacy click
   }
+
+  // --- Drag & Drop support for .dropzone ---
+const fileInput = document.getElementById("file");
+const fileNameEl = document.getElementById("file-name");
+
+function showFileName(file) {
+  if (fileNameEl) {
+    fileNameEl.textContent = file ? `📄 ${file.name}` : "";
+  }
+}
+
+if (fileInput) {
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files && fileInput.files[0]) {
+      showFileName(fileInput.files[0]);
+    } else {
+      showFileName(null);
+    }
+  });
+}
+
+const dropzone = document.querySelector(".dropzone");
+
+if (fileInput && dropzone) {
+  // prevent default browser behavior (open PDF in tab)
+  ["dragenter", "dragover", "dragleave", "drop"].forEach(evt => {
+    dropzone.addEventListener(evt, e => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+  });
+
+  // highlight when dragging
+  ["dragenter", "dragover"].forEach(evt => {
+    dropzone.addEventListener(evt, () => dropzone.classList.add("dragover"));
+  });
+  ["dragleave", "drop"].forEach(evt => {
+    dropzone.addEventListener(evt, () => dropzone.classList.remove("dragover"));
+  });
+
+  // handle drop
+  dropzone.addEventListener("drop", e => {
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      fileInput.files = files; // assign to hidden input
+      fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  });
+}
+
 })();
