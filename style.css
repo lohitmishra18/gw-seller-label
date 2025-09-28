@@ -270,3 +270,17 @@ body{
   .button-row{flex-direction:column}
   #download,#summary-btn{min-width:100%}
 }
+
+#download, #summary-btn {
+  cursor: pointer;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+}
+.pill-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 0.25em;
+}
