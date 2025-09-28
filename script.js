@@ -623,7 +623,7 @@
   }
 
   function _parseMeeshoSkuQty(pageText) {
-    const regex = /(PROM_[0-9A-Z]+)\s+.*?\s+(\d+)\s+Black/gi;
+    const regex = /(PROM_[0-9A-Z()-]+)\s+.*?\s+(\d+)\s+Black/gi;
     const results = [];
     let m;
     while ((m = regex.exec(pageText)) !== null) {
